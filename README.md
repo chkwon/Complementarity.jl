@@ -8,11 +8,11 @@ This package provides a modeling and computational interface for solving Mixed C
 
 # OS X
 
-At this moment, PATHSolver.jl is only available for Mac OS X, and its installation requires some work.
+At this moment, `PATHSolver.jl` is only available for Mac OS X, and its installation requires some work.
 
 # installation
-1. Install PATHSolver.jl. Read the [instruction of PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl).
-2. Then install Complementarity.jl:
+1. Install `PATHSolver.jl`. Read the [instruction of PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl).
+2. Install `Complementarity.jl`:
 ```julia
 Pkg.clone("https://github.com/chkwon/Complementarity.jl.git")
 ```
