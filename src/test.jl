@@ -1,5 +1,5 @@
 # using Complementarity, JuMP
-using JuMP, PATHSolver, Base.Test
+using JuMP, Base.Test
 
 include("mcp.jl")
 

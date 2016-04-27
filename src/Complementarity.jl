@@ -4,9 +4,9 @@ module Complementarity
 
 # package code goes here
 
-using JuMP, PATHSolver
+using JuMP
 
-import MathProgBase
+import PATHSolver, MathProgBase
 
 export  MCPModel, MCPData, OneDimension,
         correspond, solveMCP

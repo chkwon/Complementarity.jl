@@ -1,7 +1,5 @@
-using Complementarity, JuMP, PATHSolver
+using Complementarity, JuMP
 using Base.Test
-
-# include("mcp.jl")
 
 #########################################################################
 m = MCPModel()
@@ -21,9 +19,11 @@ correspond(m, 0, x2, Inf, F2)
 correspond(m, 0, x3, Inf, F3)
 correspond(m, 0, x4, Inf, F4)
 
-path_options(   "convergence_tolerance 1e-2",
+PATHSolver.path_options(
+                "convergence_tolerance 1e-2",
                 "output no",
-                "time_limit 3600"      )
+                "time_limit 3600"
+                )
 z, f = solveMCP(m)
 
 @test z == [2.8, 0.0, 0.8, 1.2]
@@ -50,9 +50,11 @@ ub = Inf*ones(4)
 @defNLExpr(m, F[i=1:4], sum{M[i,j]*x[j], j=1:4} + q[i])
 correspond(m, lb, x, ub, F)
 
-path_options(   "convergence_tolerance 100",
+PATHSolver.path_options(
+                "convergence_tolerance 1e-2",
                 "output yes",
-                "time_limit 3600"      )
+                "time_limit 3600"
+                )
 
 z, f = solveMCP(m)
 
