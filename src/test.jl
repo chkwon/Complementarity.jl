@@ -1,7 +1,7 @@
-using Complementarity, JuMP, PATHSolver
-using Base.Test
+# using Complementarity, JuMP
+using JuMP, PATHSolver, Base.Test
 
-# include("mcp.jl")
+include("mcp.jl")
 
 #########################################################################
 m = MCPModel()
