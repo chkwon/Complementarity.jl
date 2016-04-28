@@ -30,6 +30,8 @@ function correspond(m::Model, lb::Number, var::JuMP.Variable, ub::Number, F::JuM
     push!(data, new_dimension)
 end
 
+# These vectorinzed functions need more tests.
+# Seems that it should be JuMPArray in general.
 function correspond{T<:Number}(m::Model, lb::Array{T, 1}, var::Array{JuMP.Variable,1}, ub::Array{T, 1}, F::Array{JuMP.NonlinearExpression,1})
     @assert length(F) == length(var) == length(lb) == length(ub)
     for i in 1:length(var)
@@ -119,7 +121,15 @@ function _solve_path(m::Model)
         ub[i] = data[i].ub
     end
 
+    # Solve the MCP using PATHSolver
     z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
-    return z, f
+
+    for i in 1:n
+        variable = data[i].var
+        value = z[getLinearIndex(variable)]
+        setValue(variable, value)
+    end
+
+    return m
 
 end
