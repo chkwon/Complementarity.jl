@@ -1,14 +1,21 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 os:
-  - linux
+  # - linux
   - osx
 julia:
-  - release
-  - nightly
+    - 0.4
+  # - release
+  # - nightly
 notifications:
   email: false
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("Complementarity"); Pkg.test("Complementarity"; coverage=true)'
+script:
+    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+    - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("Complementarity"); Pkg.test("Complementarity", coverage=true)'
+after_success:
+    - echo $TRAVIS_JULIA_VERSION
+    - julia -e 'cd(Pkg.dir("Complementarity")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
