@@ -5,10 +5,6 @@ type OneDimension
     F::JuMP.NonlinearExpression
 end
 
-# type MCPData
-#     dimensions::Array{OneDimension}
-# end
-
 function MCPModel()
     m = Model()
     m.ext[:MCP] = Array(OneDimension,0)
@@ -23,8 +19,9 @@ function getMCPData(m::Model)
     end
 end
 
-
-function correspond(m::Model, lb::Number, var::JuMP.Variable, ub::Number, F::JuMP.NonlinearExpression)
+function correspond(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
+    lb = getLower(var)
+    ub = getUpper(var)
     new_dimension = OneDimension(float(lb), var, float(ub), F)
     data = getMCPData(m)
     push!(data, new_dimension)
@@ -32,26 +29,37 @@ end
 
 # These vectorinzed functions need more tests.
 # Seems that it should be JuMPArray in general.
-function correspond{T<:Number}(m::Model, lb::Array{T, 1}, var::Array{JuMP.Variable,1}, ub::Array{T, 1}, F::Array{JuMP.NonlinearExpression,1})
-    @assert length(F) == length(var) == length(lb) == length(ub)
+function correspond(m::Model, F::Array{JuMP.NonlinearExpression,1}, var::Array{JuMP.Variable,1})
+    @assert length(F) == length(var)
     for i in 1:length(var)
-        correspond(m, lb[i], var[i], ub[i], F[i])
+        correspond(m, F[i], var[i])
     end
 end
 
-function correspond{T<:Number}(m::Model, lb::Array{T}, var::Array{JuMP.Variable}, ub::Array{T}, F::Array{JuMP.NonlinearExpression})
+function correspond(m::Model, var::Array{JuMP.Variable}, F::Array{JuMP.NonlinearExpression})
     vars = collect(var)
     Fs = collect(F)
-    lbs = collect(lb)
-    ubs = collect(ub)
 
-    @assert length(vars) == length(Fs) == length(lbs) == length(ubs)
+    @assert length(vars) == length(Fs)
 
     for i in 1:length(vars)
-        correspond(m, lbs[i], vars[i], ubs[i], Fs[i])
+        correspond(m, Fs[i], vars[i])
     end
 end
 
+
+
+function correspond{T<:Any}(m::Model, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{T}}, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{T}})
+
+    @assert length(var.innerArray) == length(F.innerArray)
+
+    for i in 1:length(var.innerArray)
+        correspond(m, F.innerArray[i], var.innerArray[i])
+    end
+end
+# ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
+#
+# ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{Array{ASCIIString,1}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{Array{ASCIIString,1}}})
 
 
 function solveMCP(m::Model; method=:path)
@@ -75,6 +83,8 @@ function _solve_path(m::Model)
             setValue(data[i].var, z[i])
         end
 
+        # This part might need to use MathProgBase function evaluations.
+        # Just like below in myjac(z)
         for i in 1:length(data)
             F_ret[i] = getValue(data[i].F)
         end
@@ -124,12 +134,14 @@ function _solve_path(m::Model)
     # Solve the MCP using PATHSolver
     z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
 
+
+    # After solving set the values in m::JuMP.Model to the solution obtained.
     for i in 1:n
         variable = data[i].var
         value = z[getLinearIndex(variable)]
         setValue(variable, value)
     end
 
+    # This function has changed the content of m already.
     return m
-
 end
