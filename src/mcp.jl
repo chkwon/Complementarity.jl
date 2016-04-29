@@ -73,21 +73,6 @@ end
 # Using PATHSolver
 function _solve_path(m::Model)
 
-    function myfunc0(z)
-        mcp_data = getMCPData(m)
-        F_ret = similar(z)
-
-        for i in 1:length(mcp_data)
-            setValue(mcp_data[i].var, z[i])
-        end
-
-        for i in 1:length(mcp_data)
-            F_ret[i] = getValue(mcp_data[i].F)
-        end
-
-        return F_ret
-    end
-
     function myfunc(z)
         # z is in LindexIndex, passed from PATHSolver
 
@@ -155,3 +140,34 @@ function _solve_path(m::Model)
     # This function has changed the content of m already.
     return status
 end
+
+
+
+
+# The below will be useful for creating wrapper macros
+# so that users don't need to do 'using Complementarity, JuMP'
+# but, just 'using Complementarity'
+
+# Modification of deprecate_macro from JuMP.jl
+macro macro_wrapper(old, new)
+    oldmac = symbol(string("@",old))
+    newmac = symbol(string("@",new))
+    s = string(oldmac," is just a wrapper of Jump.", newmac, ".")
+    if VERSION > v"0.5-"
+        # backtraces are ok on 0.5
+        # depwarn = :(Base.depwarn($s,$(Meta.quot(oldmac))))
+        depwarn = :()
+    else
+        # backtraces are junk on 0.4
+        # depwarn = :(Base.warn_once($s))
+        depwarn = :()
+    end
+    @eval macro $old(args...)
+        return Expr(:block, $depwarn, Expr(:macrocall, $(Meta.quot(newmac)), [esc(x) for x in args]...))
+    end
+    eval(Expr(:export,oldmac))
+    return
+end
+
+@macro_wrapper variable defVar
+@macro_wrapper mapping defNLExpr

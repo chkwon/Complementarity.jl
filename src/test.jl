@@ -21,6 +21,15 @@ m = MCPModel()
 @defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
 @defNLExpr(m, F1, -x3-x4 +2)
 
+# @variable(m, x3 >= 0)
+# @variable(m, x4 >= 0)
+# @variable(m, x1 >= 0)
+# @variable(m, x2 >= 0)
+#
+# @function(m, F2, x3-2x4 +2)
+# @function(m, F3, x1-x2+2x3-2x4 -2)
+# @function(m, F4, x1+2x2-2x3+4x4 -6)
+# @function(m, F1, -x3-x4 +2)
 
 #
 # @defVar(m, x3 >= 30)
