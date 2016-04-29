@@ -6,10 +6,47 @@
 
 This package provides a modeling and computational interface for solving Mixed Complementarity Problems (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl).
 
+The form of MCP is as follows:
+```
+lb ≤ x ≤ ub ⟂ F(x)
+```
+which means
+- `x = lb`, then `F(x) ≥ 0`
+- `lb < x < ub`, then `F(x) = 0`
+- `x = ub`, then `F(x) ≤ 0`
+When there is no upper bound `ub`, and the lower bound `lb=0`, then it is a regular Nonlinear Complementarity Problem (NCP) of the form:
+```
+0 ≤ x ⟂ F(x) ≥ 0
+```
+which means
+```
+F(x)' x = 0, F(x) ≥ 0, x ≥ 0
+```
+When `F(x)` is a linear operator such as `F(x) = M x + q` with matrix `M` and vector `q`, then it is a Linear Complementarity Problem (LCP). All these problems are solved by the [PATH Solver](http://pages.cs.wisc.edu/%7Eferris/path.html) which is wrapped by the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) package.
 
-# OS X
+This package `Complementarity.jl` extends the modeling language from [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) to model complementarity problems.
+
+
+# OS X only
 
 At this moment, `PATHSolver.jl` is only available for Mac OS X, and its installation requires some work. Because this package `Complementarity.jl` is dependent on `PATHSolver.jl`, it also is available for Mac OS X only.
+
+# License
+
+The PATH Solver requires a license. The web page of the PATH Solver provides a temporary license that is valid for a year. A new license is provided each year in the web page. Visit the [license page](http://pages.cs.wisc.edu/~ferris/path/LICENSE) of the PATH Solver.
+
+Edit your `.bash_profile` file. For example, if you have `Atom` editor:
+```bash
+atom ~/.bash_profile
+```
+and add the following two lines:
+```bash
+export PATH_LICENSE_STRING="---------------------------------------------------------------"
+```
+You can obtain the most recent `PATH_LICENSE_STRING` from [the website of the PATH Solver](http://pages.cs.wisc.edu/~ferris/path/LICENSE). To reflect the change:
+```bash
+source ~/.bash_profile
+```
 
 # Installation
 
@@ -18,6 +55,12 @@ Pkg.add("Complementarity")
 ```
 
 If an error occurs during installation, it is most likely a problem in the `PATHSolver.jl` package. Try first to build `PATHSolver.jl` by doing `Pkg.build("PATHSolver")`.
+
+You may need to install 'Xcode Command Line Tools'. On Mavericks or higher (Yosemite, El Capitan), you can install it by entering the following command in your terminal:
+```
+xcode-select --install
+```
+For older versions of Mac OS X, see [this post](http://mac-how-to.wonderhowto.com/how-to/install-command-line-developer-tools-without-xcode-0168115/).
 
 
 # Example 1
