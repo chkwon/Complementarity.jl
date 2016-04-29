@@ -20,7 +20,7 @@ function getMCPData(m::Model)
     end
 end
 
-function correspond(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
+function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     lb = getLower(var)
     ub = getUpper(var)
     new_dimension = ComplementarityType(lb, var, ub, F, getLinearIndex(var))
@@ -28,25 +28,25 @@ function correspond(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     push!(mcp_data, new_dimension)
 end
 
-function correspond(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuMP.Variable})
+function complements(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuMP.Variable})
     vars = collect(var)
     Fs = collect(F)
 
     @assert length(vars) == length(Fs)
 
     for i in 1:length(vars)
-        correspond(m, Fs[i], vars[i])
+        complements(m, Fs[i], vars[i])
     end
 end
 
-function correspond(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
+function complements(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
     vars = collect(var.innerArray)
     Fs = collect(F.innerArray)
 
     @assert length(vars) == length(Fs)
 
     for i in 1:length(vars)
-        correspond(m, Fs[i], vars[i])
+        complements(m, Fs[i], vars[i])
     end
 end
 

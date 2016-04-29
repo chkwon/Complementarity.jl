@@ -9,7 +9,7 @@ using JuMP
 import PATHSolver, MathProgBase
 
 export  MCPModel, MCPData, Complementarity,
-        correspond, solveMCP
+        complements, solveMCP
 
 include("mcp.jl")
 

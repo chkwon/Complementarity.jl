@@ -14,10 +14,10 @@ m = MCPModel()
 @defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
 @defNLExpr(m, F1, -x3-x4 +2)
 
-correspond(m, F4, x4)
-correspond(m, F1, x1)
-correspond(m, F3, x3)
-correspond(m, F2, x2)
+complements(m, F4, x4)
+complements(m, F1, x1)
+complements(m, F3, x3)
+complements(m, F2, x2)
 
 
 PATHSolver.path_options(
@@ -51,10 +51,10 @@ m = MCPModel()
 @defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
 @defNLExpr(m, F1, -x3-x4 +2)
 
-correspond(m, F2, x2)
-correspond(m, F3, x3)
-correspond(m, F1, x1)
-correspond(m, F4, x4)
+complements(m, F2, x2)
+complements(m, F3, x3)
+complements(m, F1, x1)
+complements(m, F4, x4)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
@@ -87,7 +87,7 @@ ub = Inf*ones(4)
 
 @defVar(m, lb[i] <= x[i in 1:4] <= ub[i])
 @defNLExpr(m, F[i=1:4], sum{M[i,j]*x[j], j=1:4} + q[i])
-correspond(m, F, x)
+complements(m, F, x)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
@@ -125,7 +125,7 @@ items = 1:4
 # @defVar(m, lb[i] <= x[i in items] <= ub[i])
 @defVar(m, x[i in items] >= 0)
 @defNLExpr(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
-correspond(m, F, x)
+complements(m, F, x)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",

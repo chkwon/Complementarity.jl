@@ -86,7 +86,7 @@ items = 1:4
 # @defVar(m, lb[i] <= x[i in items] <= ub[i])
 @defVar(m, x[i in items] >= 0)
 @defNLExpr(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
-correspond(m, F, x)
+complements(m, F, x)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-2",
@@ -116,9 +116,9 @@ Defining variables is exactly same as in JuMP.jl. Lower and upper bounds on the 
 This is to define expressions for `F` in MCP. Even when the expression is linear or quadratic, you should use the nonlinear version `@defNLExpr`.
 
 ```julia
-correspond(m, F, x)
+complements(m, F, x)
 ```
-This function matches each element of `F` and the corresponding element of `x`.
+This function matches each element of `F` and the complementsing element of `x`.
 
 ```julia
 PATHSolver.path_options(   
@@ -173,9 +173,9 @@ m = MCPModel()
 @defNLExpr(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
 @defNLExpr(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
 
-correspond(m, profit, x)
-correspond(m, supply, w)
-correspond(m, fxdemand, p)
+complements(m, profit, x)
+complements(m, supply, w)
+complements(m, fxdemand, p)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",

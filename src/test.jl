@@ -34,10 +34,10 @@ m = MCPModel()
 # @defNLExpr(m, F1, x1*100)
 
 
-correspond(m, F2, x2)
-correspond(m, F3, x3)
-correspond(m, F1, x1)
-correspond(m, F4, x4)
+complements(m, F2, x2)
+complements(m, F3, x3)
+complements(m, F1, x1)
+complements(m, F4, x4)
 
 
 

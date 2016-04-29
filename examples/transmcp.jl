@@ -48,9 +48,9 @@ m = MCPModel()
 @defNLExpr(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
 @defNLExpr(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
 
-correspond(m, profit, x)
-correspond(m, supply, w)
-correspond(m, fxdemand, p)
+complements(m, profit, x)
+complements(m, supply, w)
+complements(m, fxdemand, p)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
