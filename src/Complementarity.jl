@@ -8,7 +8,7 @@ using JuMP
 
 import PATHSolver, MathProgBase
 
-export  MCPModel, MCPData, OneDimension,
+export  MCPModel, MCPData, Complementarity,
         correspond, solveMCP
 
 include("mcp.jl")

@@ -4,29 +4,67 @@ using Base.Test
 #########################################################################
 m = MCPModel()
 
-@defVar(m, x1 >= 0)
-@defVar(m, x2 >= 0)
 @defVar(m, x3 >= 0)
 @defVar(m, x4 >= 0)
+@defVar(m, x1 >= 0)
+@defVar(m, x2 >= 0)
 
-@defNLExpr(m, F1, -x3-x4 +2)
 @defNLExpr(m, F2, x3-2x4 +2)
 @defNLExpr(m, F3, x1-x2+2x3-2x4 -2)
 @defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
+@defNLExpr(m, F1, -x3-x4 +2)
 
-correspond(m, F1, x1)
-correspond(m, F2, x2)
-correspond(m, F3, x3)
 correspond(m, F4, x4)
+correspond(m, F1, x1)
+correspond(m, F3, x3)
+correspond(m, F2, x2)
+
 
 PATHSolver.path_options(
-                "convergence_tolerance 1e-2",
+                "convergence_tolerance 1e-8",
                 "output no",
                 "time_limit 3600"
                 )
 solveMCP(m)
 
 z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
+@show z
+
+
+@test z == [2.8, 0.0, 0.8, 1.2]
+#########################################################################
+
+
+println("------------------------------------------------------------------")
+
+
+#########################################################################
+m = MCPModel()
+
+@defVar(m, x3 >= 0)
+@defVar(m, x4 >= 0)
+@defVar(m, x1 >= 0)
+@defVar(m, x2 >= 0)
+
+@defNLExpr(m, F2, x3-2x4 +2)
+@defNLExpr(m, F3, x1-x2+2x3-2x4 -2)
+@defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
+@defNLExpr(m, F1, -x3-x4 +2)
+
+correspond(m, F2, x2)
+correspond(m, F3, x3)
+correspond(m, F1, x1)
+correspond(m, F4, x4)
+
+PATHSolver.path_options(
+                "convergence_tolerance 1e-8",
+                "output no",
+                "time_limit 3600"
+                )
+solveMCP(m)
+
+z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
+@show z
 @test z == [2.8, 0.0, 0.8, 1.2]
 #########################################################################
 
@@ -52,7 +90,7 @@ ub = Inf*ones(4)
 correspond(m, F, x)
 
 PATHSolver.path_options(
-                "convergence_tolerance 1e-2",
+                "convergence_tolerance 1e-8",
                 "output no",
                 "time_limit 3600"
                 )
@@ -90,7 +128,7 @@ items = 1:4
 correspond(m, F, x)
 
 PATHSolver.path_options(
-                "convergence_tolerance 1e-2",
+                "convergence_tolerance 1e-8",
                 "output no",
                 "time_limit 3600"
                 )
