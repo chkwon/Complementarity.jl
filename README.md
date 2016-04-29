@@ -89,7 +89,7 @@ This solves the MCP and stores the solution inside `m`, which can be accessed by
 
 # Example 2
 
-This is a translation of `[transmcp.gms](http://www.gams.com/modlib/libhtml/transmcp.htm)` originally written in GAMS.
+This is a translation of [`transmcp.gms`](http://www.gams.com/modlib/libhtml/transmcp.htm) originally written in GAMS.
 
 ```julia
 plants = ["seattle", "san-diego"]
