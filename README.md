@@ -216,7 +216,7 @@ status = :Solved
 ```
 
 # Status Symbols
-```
+```julia
 status =
     [ :Solved,              # 1 - solved
       :StationaryPoint,     # 2 - stationary point found
