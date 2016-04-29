@@ -139,6 +139,8 @@ This solves the MCP and stores the solution inside `m`, which can be accessed by
 This is a translation of [`transmcp.gms`](http://www.gams.com/modlib/libhtml/transmcp.htm) originally written in GAMS.
 
 ```julia
+using Complementarity, JuMP
+
 plants = ["seattle", "san-diego"]
 markets = ["new-york", "chicago", "topeka"]
 
@@ -160,8 +162,6 @@ end
 
 f = 90
 
-using Complementarity, JuMP
-
 m = MCPModel()
 @defVar(m, w[i in plants] >= 0)
 @defVar(m, p[j in markets] >= 0)
@@ -169,17 +169,17 @@ m = MCPModel()
 
 @defNLExpr(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@defNLExpr(m, profit[i in plants, j in markets], w[i] + c[i,j] - p[j])
-@defNLExpr(m, supply[i in plants], a[i] - sum{x[i,j], j in markets})
-@defNLExpr(m, fxdemand[j in markets], sum{x[i,j], i in plants} - b[j])
+@defNLExpr(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@defNLExpr(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
+@defNLExpr(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
 
 correspond(m, profit, x)
 correspond(m, supply, w)
 correspond(m, fxdemand, p)
 
 PATHSolver.path_options(
-                "convergence_tolerance 1e-2",
-                "output no",
+                "convergence_tolerance 1e-8",
+                "output yes",
                 "time_limit 3600"
                 )
 
@@ -194,25 +194,20 @@ The result is
 ```julia
 getValue(x) = x: 2 dimensions:
 [  seattle,:]
-  [  seattle,new-york] = 67.70981462842977
-  [  seattle, chicago] = 1175.6096055006494
-  [  seattle,  topeka] = 2389.1555381352864
+  [  seattle,new-york] = 49.99999533220467
+  [  seattle, chicago] = 300.0
+  [  seattle,  topeka] = 0.0
 [san-diego,:]
-  [san-diego,new-york] = 198.46702743401073
-  [san-diego, chicago] = 793.3418797392139
-  [san-diego,  topeka] = 1245.136516087478
+  [san-diego,new-york] = 275.00000466779534
+  [san-diego, chicago] = 0.0
+  [san-diego,  topeka] = 275.0
 
 getValue(w) = w: 1 dimensions:
-[  seattle] = 72.21062818239575
-[san-diego] = 152.84461370674097
+[  seattle] = 0.0
+[san-diego] = 0.0
 
 getValue(p) = p: 1 dimensions:
-[new-york] = 68.04769346598324
-[ chicago] = 5.747377724425455
-[  topeka] = 0.0
-
-p: 1 dimensions:
-[new-york] = 68.04769346598324
-[ chicago] = 5.747377724425455
-[  topeka] = 0.0
+[new-york] = 0.22499999999999992
+[ chicago] = 0.15299999999999955
+[  topeka] = 0.126
 ```
