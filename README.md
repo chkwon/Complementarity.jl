@@ -67,6 +67,8 @@ For older versions of Mac OS X, see [this post](http://mac-how-to.wonderhowto.co
 # Example 1
 
 ```julia
+using Complementarity, JuMP
+
 m = MCPModel()
 
 M = [0  0 -1 -1 ;
