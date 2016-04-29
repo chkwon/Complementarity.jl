@@ -68,7 +68,15 @@ function solveMCP(m::Model; method=:path)
     return _solve_path(m)
 end
 
+function sortMCPDataperm(obj::Array{ComplementarityType,1})
+    n = length(obj)
+    ref = Array{Int}(n)
+    for i in 1:n
+        ref[i] = obj[i].lin_idx
+    end
 
+    return sortperm(ref)
+end
 
 # Using PATHSolver
 function _solve_path(m::Model)
@@ -112,20 +120,12 @@ function _solve_path(m::Model)
     # Declaring MCP operator F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = LinearIndex
-    # Add constraint in the order of LinearIndex (NEEDS IMPROVEMENT)
-    constraint = Array{Any}(n)
-    for i in 1:n
-        for j in 1:n
-            if mcp_data[j].lin_idx == i
-                constraint[i] = @addNLConstraint(m, mcp_data[j].F == 0)
-            end
-        end
-    end
-    # @addNLConstraint(m, constraint[i=1:n], mcp_data[i].F == 0)
+    # Add constraint in the order of LinearIndex
+    p = sortMCPDataperm(mcp_data)
+    @addNLConstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
-
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
