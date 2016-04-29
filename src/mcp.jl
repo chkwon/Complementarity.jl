@@ -27,15 +27,6 @@ function correspond(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     push!(data, new_dimension)
 end
 
-# # These vectorinzed functions need more tests.
-# # Seems that it should be JuMPArray in general.
-# function correspond(m::Model, F::Array{JuMP.NonlinearExpression,1}, var::Array{JuMP.Variable,1})
-#     @assert length(F) == length(var)
-#     for i in 1:length(var)
-#         correspond(m, F[i], var[i])
-#     end
-# end
-
 function correspond(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuMP.Variable})
     vars = collect(var)
     Fs = collect(F)
@@ -47,16 +38,6 @@ function correspond(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuM
     end
 end
 
-
-# function correspond{T<:Any}(m::Model, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{T}}, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{T}})
-#
-#     @assert length(var.innerArray) == length(F.innerArray)
-#
-#     for i in 1:length(var.innerArray)
-#         correspond(m, F.innerArray[i], var.innerArray[i])
-#     end
-# end
-
 function correspond(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
     vars = collect(var.innerArray)
     Fs = collect(F.innerArray)
@@ -67,11 +48,6 @@ function correspond(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
         correspond(m, Fs[i], vars[i])
     end
 end
-
-
-# ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
-#
-# ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{Array{ASCIIString,1}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{Array{ASCIIString,1}}})
 
 
 function solveMCP(m::Model; method=:path)
