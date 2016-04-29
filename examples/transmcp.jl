@@ -63,3 +63,6 @@ solveMCP(m)
 @show getValue(x)
 @show getValue(w)
 @show getValue(p)
+
+@assert getValue(x["seattle", "chicago"]) == 300.0
+@assert getValue(p["topeka"]) == 0.126
