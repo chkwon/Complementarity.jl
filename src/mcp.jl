@@ -144,7 +144,7 @@ function _solve_path(m::Model)
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
-    z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
+    status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
     # z, f are in LinearIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
@@ -153,5 +153,5 @@ function _solve_path(m::Model)
     end
 
     # This function has changed the content of m already.
-    return m
+    return status
 end

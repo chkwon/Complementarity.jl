@@ -58,11 +58,13 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-solveMCP(m)
+status = solveMCP(m)
 
 @show getValue(x)
 @show getValue(w)
 @show getValue(p)
 
+@show status
+@assert status == :Solved
 @assert getValue(x["seattle", "chicago"]) == 300.0
 @assert getValue(p["topeka"]) == 0.126

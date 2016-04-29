@@ -183,11 +183,12 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-solveMCP(m)
+status = solveMCP(m)
 
 @show getValue(x)
 @show getValue(w)
 @show getValue(p)
+@show status
 ```
 
 The result is
@@ -210,4 +211,21 @@ getValue(p) = p: 1 dimensions:
 [new-york] = 0.22499999999999992
 [ chicago] = 0.15299999999999955
 [  topeka] = 0.126
+
+status = :Solved
 ```
+
+# Status Symbols
+```
+status =
+    [ :Solved,              # 1 - solved
+      :StationaryPoint,     # 2 - stationary point found
+      :MajorIterLimit,      # 3 - major iteration limit
+      :MinorIterLimit,      # 4 - cumulative minor iteration limit
+      :TimeLimit,           # 5 - time limit
+      :Interrupt,           # 6 - user interrupt
+      :BoundError,          # 7 - bound error (lb is not less than ub)
+      :DominaError,         # 8 - domain error (could not find a starting point)
+      :InternalError        # 9 - internal error
+     ]
+ ```

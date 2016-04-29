@@ -25,7 +25,7 @@ PATHSolver.path_options(
                 "output no",
                 "time_limit 3600"
                 )
-solveMCP(m)
+status = solveMCP(m)
 
 z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
 @show z
@@ -61,7 +61,7 @@ PATHSolver.path_options(
                 "output no",
                 "time_limit 3600"
                 )
-solveMCP(m)
+status = solveMCP(m)
 
 z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
 @show z
@@ -95,7 +95,7 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-solveMCP(m)
+status = solveMCP(m)
 
 z = getValue(x)
 @test z[1] == 2.8
@@ -133,7 +133,7 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-solveMCP(m)
+status = solveMCP(m)
 
 z = getValue(x)
 @test z[1] == 2.8
