@@ -14,6 +14,7 @@ which means
 - `x = lb`, then `F(x) ≥ 0`
 - `lb < x < ub`, then `F(x) = 0`
 - `x = ub`, then `F(x) ≤ 0`
+
 When there is no upper bound `ub`, and the lower bound `lb=0`, then it is a regular Nonlinear Complementarity Problem (NCP) of the form:
 ```
 0 ≤ x ⟂ F(x) ≥ 0
