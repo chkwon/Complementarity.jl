@@ -13,10 +13,11 @@ At this moment, `PATHSolver.jl` is only available for Mac OS X, and its installa
 
 # Installation
 
-Currently, this package has not yet been registered.
 ```julia
-Pkg.clone("https://github.com/chkwon/Complementarity.jl.git")
+Pkg.add("Complementarity")
 ```
+
+If an error occurs during installation, it is most likely a problem in the `PATHSolver.jl` package. Try first to build `PATHSolver.jl` by doing `Pkg.build("PATHSolver")`.
 
 
 # Example 1
