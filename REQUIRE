@@ -1,3 +1,3 @@
 julia 0.4
-JuMP
-PATHSolver
+JuMP 0.13.0
+PATHSolver 0.0.3
