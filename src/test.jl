@@ -6,20 +6,20 @@ include("mcp.jl")
 
 m = MCPModel()
 
-# @defVar(m, 3 <= x3 <= 111)
-# @defVar(m, 4 <= x4 <= 222)
-# @defVar(m, 1 <= x1 <= 333)
-# @defVar(m, 2 <= x2 <= 444)
+# @variable(m, 3 <= x3 <= 111)
+# @variable(m, 4 <= x4 <= 222)
+# @variable(m, 1 <= x1 <= 333)
+# @variable(m, 2 <= x2 <= 444)
 
-@defVar(m, x3 >= 0)
-@defVar(m, x4 >= 0)
-@defVar(m, x1 >= 0)
-@defVar(m, x2 >= 0)
+@variable(m, x3 >= 0)
+@variable(m, x4 >= 0)
+@variable(m, x1 >= 0)
+@variable(m, x2 >= 0)
 
-@defNLExpr(m, F2, x3-2x4 +2)
-@defNLExpr(m, F3, x1-x2+2x3-2x4 -2)
-@defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
-@defNLExpr(m, F1, -x3-x4 +2)
+@NLexpression(m, F2, x3-2x4 +2)
+@NLexpression(m, F3, x1-x2+2x3-2x4 -2)
+@NLexpression(m, F4, x1+2x2-2x3+4x4 -6)
+@NLexpression(m, F1, -x3-x4 +2)
 
 # @variable(m, x3 >= 0)
 # @variable(m, x4 >= 0)
@@ -32,15 +32,15 @@ m = MCPModel()
 # @function(m, F1, -x3-x4 +2)
 
 #
-# @defVar(m, x3 >= 30)
-# @defVar(m, x4 >= 40)
-# @defVar(m, x1 >= 10)
-# @defVar(m, x2 >= 20)
+# @variable(m, x3 >= 30)
+# @variable(m, x4 >= 40)
+# @variable(m, x1 >= 10)
+# @variable(m, x2 >= 20)
 #
-# @defNLExpr(m, F2, x2*100)
-# @defNLExpr(m, F3, x3*100)
-# @defNLExpr(m, F4, x4*100)
-# @defNLExpr(m, F1, x1*100)
+# @NLexpression(m, F2, x2*100)
+# @NLexpression(m, F3, x3*100)
+# @NLexpression(m, F4, x4*100)
+# @NLexpression(m, F1, x1*100)
 
 
 complements(m, F2, x2)
@@ -59,7 +59,7 @@ PATHSolver.path_options(
                 )
 solveMCP(m)
 
-z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
+z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
 @show z
 
 

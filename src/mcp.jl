@@ -21,9 +21,9 @@ function getMCPData(m::Model)
 end
 
 function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
-    lb = getLower(var)
-    ub = getUpper(var)
-    new_dimension = ComplementarityType(lb, var, ub, F, getLinearIndex(var))
+    lb = getlowerbound(var)
+    ub = getupperbound(var)
+    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var))
     mcp_data = getMCPData(m)
     push!(mcp_data, new_dimension)
 end
@@ -55,8 +55,8 @@ function getBoundsLinearIndex(mcp_data)
     lb = zeros(n)
     ub = ones(n)
     for i in 1:n
-        lb[getLinearIndex(mcp_data[i].var)] = mcp_data[i].lb
-        ub[getLinearIndex(mcp_data[i].var)] = mcp_data[i].ub
+        lb[linearindex(mcp_data[i].var)] = mcp_data[i].lb
+        ub[linearindex(mcp_data[i].var)] = mcp_data[i].ub
     end
     return lb, ub
 end
@@ -84,7 +84,7 @@ function _solve_path(m::Model)
     function myfunc(z)
         # z is in LindexIndex, passed from PATHSolver
 
-        d = JuMPNLPEvaluator(m)
+        d = JuMP.NLPEvaluator(m)
         MathProgBase.initialize(d, [:Grad])
         F_val = zeros(n)
         MathProgBase.eval_g(d, F_val, z)
@@ -98,7 +98,7 @@ function _solve_path(m::Model)
     function myjac(z)
         # z is in LindexIndex, passed from PATHSolver
 
-        d = JuMPNLPEvaluator(m)
+        d = JuMP.NLPEvaluator(m)
         MathProgBase.initialize(d, [:Grad])
         I,J = MathProgBase.jac_structure(d)
         jac_val = zeros(size(J))
@@ -122,7 +122,7 @@ function _solve_path(m::Model)
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
     p = sortMCPDataperm(mcp_data)
-    @addNLConstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
+    @NLconstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
@@ -134,7 +134,7 @@ function _solve_path(m::Model)
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
     for i in 1:n
-        setValue(mcp_data[i].var, z[mcp_data[i].lin_idx])
+        setvalue(mcp_data[i].var, z[mcp_data[i].lin_idx])
     end
 
     # This function has changed the content of m already.
@@ -169,5 +169,4 @@ macro macro_wrapper(old, new)
     return
 end
 
-@macro_wrapper variable defVar
 @macro_wrapper mapping defNLExpr

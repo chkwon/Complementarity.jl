@@ -83,9 +83,9 @@ ub = Inf*ones(4)
 
 items = 1:4
 
-# @defVar(m, lb[i] <= x[i in items] <= ub[i])
-@defVar(m, x[i in items] >= 0)
-@defNLExpr(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+# @variable(m, lb[i] <= x[i in items] <= ub[i])
+@variable(m, x[i in items] >= 0)
+@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 complements(m, F, x)
 
 PATHSolver.path_options(
@@ -96,7 +96,7 @@ PATHSolver.path_options(
 
 solveMCP(m)
 
-z = getValue(x)
+z = getvalue(x)
 ````
 The result should be `[2.8, 0.0, 0.8, 1.2]`.
 
@@ -106,14 +106,14 @@ m = MCPModel()
 This line prepares a JuMP Model, just same as in [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl).
 
 ```julia
-@defVar(m, x[i in items] >= 0)
+@variable(m, x[i in items] >= 0)
 ```
 Defining variables is exactly same as in JuMP.jl. Lower and upper bounds on the variables in the MCP model should be provided here.
 
 ```julia
-@defNLExpr(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 ```
-This is to define expressions for `F` in MCP. Even when the expression is linear or quadratic, you should use the nonlinear version `@defNLExpr`.
+This is to define expressions for `F` in MCP. Even when the expression is linear or quadratic, you should use the nonlinear version `@NLexpression`.
 
 ```julia
 complements(m, F, x)
@@ -131,7 +131,7 @@ This adjusts options of the PATH Solver. See the [list of options](http://www.cs
 ```julia
 solveMCP(m)
 ```
-This solves the MCP and stores the solution inside `m`, which can be accessed by `getValue(x)` as in JuMP.
+This solves the MCP and stores the solution inside `m`, which can be accessed by `getvalue(x)` as in JuMP.
 
 
 # Example 2
@@ -163,15 +163,15 @@ end
 f = 90
 
 m = MCPModel()
-@defVar(m, w[i in plants] >= 0)
-@defVar(m, p[j in markets] >= 0)
-@defVar(m, x[i in plants, j in markets] >= 0)
+@variable(m, w[i in plants] >= 0)
+@variable(m, p[j in markets] >= 0)
+@variable(m, x[i in plants, j in markets] >= 0)
 
-@defNLExpr(m, c[i in plants, j in markets], f * d[i,j] / 1000)
+@NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@defNLExpr(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@defNLExpr(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
-@defNLExpr(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
+@NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@NLexpression(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
+@NLexpression(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
 
 complements(m, profit, x)
 complements(m, supply, w)
@@ -185,15 +185,15 @@ PATHSolver.path_options(
 
 status = solveMCP(m)
 
-@show getValue(x)
-@show getValue(w)
-@show getValue(p)
+@show getvalue(x)
+@show getvalue(w)
+@show getvalue(p)
 @show status
 ```
 
 The result is
 ```julia
-getValue(x) = x: 2 dimensions:
+getvalue(x) = x: 2 dimensions:
 [  seattle,:]
   [  seattle,new-york] = 49.99999533220467
   [  seattle, chicago] = 300.0
@@ -203,11 +203,11 @@ getValue(x) = x: 2 dimensions:
   [san-diego, chicago] = 0.0
   [san-diego,  topeka] = 275.0
 
-getValue(w) = w: 1 dimensions:
+getvalue(w) = w: 1 dimensions:
 [  seattle] = 0.0
 [san-diego] = 0.0
 
-getValue(p) = p: 1 dimensions:
+getvalue(p) = p: 1 dimensions:
 [new-york] = 0.22499999999999992
 [ chicago] = 0.15299999999999955
 [  topeka] = 0.126

@@ -4,15 +4,15 @@ using Base.Test
 #########################################################################
 m = MCPModel()
 
-@defVar(m, x3 >= 0)
-@defVar(m, x4 >= 0)
-@defVar(m, x1 >= 0)
-@defVar(m, x2 >= 0)
+@variable(m, x3 >= 0)
+@variable(m, x4 >= 0)
+@variable(m, x1 >= 0)
+@variable(m, x2 >= 0)
 
-@defNLExpr(m, F2, x3-2x4 +2)
-@defNLExpr(m, F3, x1-x2+2x3-2x4 -2)
-@defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
-@defNLExpr(m, F1, -x3-x4 +2)
+@NLexpression(m, F2, x3-2x4 +2)
+@NLexpression(m, F3, x1-x2+2x3-2x4 -2)
+@NLexpression(m, F4, x1+2x2-2x3+4x4 -6)
+@NLexpression(m, F1, -x3-x4 +2)
 
 complements(m, F4, x4)
 complements(m, F1, x1)
@@ -27,7 +27,7 @@ PATHSolver.path_options(
                 )
 status = solveMCP(m)
 
-z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
+z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
 @show z
 
 
@@ -41,15 +41,15 @@ println("------------------------------------------------------------------")
 #########################################################################
 m = MCPModel()
 
-@defVar(m, x3 >= 0)
-@defVar(m, x4 >= 0)
-@defVar(m, x1 >= 0)
-@defVar(m, x2 >= 0)
+@variable(m, x3 >= 0)
+@variable(m, x4 >= 0)
+@variable(m, x1 >= 0)
+@variable(m, x2 >= 0)
 
-@defNLExpr(m, F2, x3-2x4 +2)
-@defNLExpr(m, F3, x1-x2+2x3-2x4 -2)
-@defNLExpr(m, F4, x1+2x2-2x3+4x4 -6)
-@defNLExpr(m, F1, -x3-x4 +2)
+@NLexpression(m, F2, x3-2x4 +2)
+@NLexpression(m, F3, x1-x2+2x3-2x4 -2)
+@NLexpression(m, F4, x1+2x2-2x3+4x4 -6)
+@NLexpression(m, F1, -x3-x4 +2)
 
 complements(m, F2, x2)
 complements(m, F3, x3)
@@ -63,7 +63,7 @@ PATHSolver.path_options(
                 )
 status = solveMCP(m)
 
-z = [getValue(x1), getValue(x2), getValue(x3), getValue(x4)]
+z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
 @show z
 @test z == [2.8, 0.0, 0.8, 1.2]
 #########################################################################
@@ -85,8 +85,8 @@ q = [2; 2; -2; -6]
 lb = zeros(4)
 ub = Inf*ones(4)
 
-@defVar(m, lb[i] <= x[i in 1:4] <= ub[i])
-@defNLExpr(m, F[i=1:4], sum{M[i,j]*x[j], j=1:4} + q[i])
+@variable(m, lb[i] <= x[i in 1:4] <= ub[i])
+@NLexpression(m, F[i=1:4], sum{M[i,j]*x[j], j=1:4} + q[i])
 complements(m, F, x)
 
 PATHSolver.path_options(
@@ -97,7 +97,7 @@ PATHSolver.path_options(
 
 status = solveMCP(m)
 
-z = getValue(x)
+z = getvalue(x)
 @test z[1] == 2.8
 @test z[2] == 0.0
 @test z[3] == 0.8
@@ -122,9 +122,9 @@ ub = Inf*ones(4)
 
 items = 1:4
 
-# @defVar(m, lb[i] <= x[i in items] <= ub[i])
-@defVar(m, x[i in items] >= 0)
-@defNLExpr(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+# @variable(m, lb[i] <= x[i in items] <= ub[i])
+@variable(m, x[i in items] >= 0)
+@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 complements(m, F, x)
 
 PATHSolver.path_options(
@@ -135,7 +135,7 @@ PATHSolver.path_options(
 
 status = solveMCP(m)
 
-z = getValue(x)
+z = getvalue(x)
 @test z[1] == 2.8
 @test z[2] == 0.0
 @test z[3] == 0.8

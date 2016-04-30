@@ -38,15 +38,15 @@ end
 f = 90
 
 m = MCPModel()
-@defVar(m, w[i in plants] >= 0)
-@defVar(m, p[j in markets] >= 0)
-@defVar(m, x[i in plants, j in markets] >= 0)
+@variable(m, w[i in plants] >= 0)
+@variable(m, p[j in markets] >= 0)
+@variable(m, x[i in plants, j in markets] >= 0)
 
-@defNLExpr(m, c[i in plants, j in markets], f * d[i,j] / 1000)
+@NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@defNLExpr(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@defNLExpr(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
-@defNLExpr(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
+@NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@NLexpression(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
+@NLexpression(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
 
 complements(m, profit, x)
 complements(m, supply, w)
@@ -60,11 +60,11 @@ PATHSolver.path_options(
 
 status = solveMCP(m)
 
-@show getValue(x)
-@show getValue(w)
-@show getValue(p)
+@show getvalue(x)
+@show getvalue(w)
+@show getvalue(p)
 
 @show status
 @assert status == :Solved
-@assert getValue(x["seattle", "chicago"]) == 300.0
-@assert getValue(p["topeka"]) == 0.126
+@assert getvalue(x["seattle", "chicago"]) == 300.0
+@assert getvalue(p["topeka"]) == 0.126
