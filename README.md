@@ -28,26 +28,12 @@ When `F(x)` is a linear operator such as `F(x) = M x + q` with matrix `M` and ve
 This package `Complementarity.jl` extends the modeling language from [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) to model complementarity problems.
 
 
-# OS X only
+# OS X and Linux
 
-At this moment, `PATHSolver.jl` is only available for Mac OS X, and its installation requires some work. Because this package `Complementarity.jl` is dependent on `PATHSolver.jl`, it also is available for Mac OS X only.
+At this moment, `PATHSolver.jl` is only available for Mac OS X and Linux. Because this package `Complementarity.jl` is dependent on `PATHSolver.jl`, it also is available for Mac OS X and Linux only. 
 
-# License
+This package can be used in [JuliaBox](https://juliabox.org).
 
-The PATH Solver requires a license. The web page of the PATH Solver provides a temporary license that is valid for a year. A new license is provided each year in the web page. Visit the [license page](http://pages.cs.wisc.edu/~ferris/path/LICENSE) of the PATH Solver.
-
-Edit your `.bash_profile` file. For example, if you have `Atom` editor:
-```bash
-atom ~/.bash_profile
-```
-and add the following two lines:
-```bash
-export PATH_LICENSE_STRING="---------------------------------------------------------------"
-```
-You can obtain the most recent `PATH_LICENSE_STRING` from [the website of the PATH Solver](http://pages.cs.wisc.edu/~ferris/path/LICENSE). To reflect the change:
-```bash
-source ~/.bash_profile
-```
 
 # Installation
 
@@ -55,13 +41,11 @@ source ~/.bash_profile
 Pkg.add("Complementarity")
 ```
 
-If an error occurs during installation, it is most likely a problem in the `PATHSolver.jl` package. Try first to build `PATHSolver.jl` by doing `Pkg.build("PATHSolver")`.
+This will automatically install `PATHSolver.jl` as well.
 
-You may need to install 'Xcode Command Line Tools'. On Mavericks or higher (Yosemite, El Capitan), you can install it by entering the following command in your terminal:
-```
-xcode-select --install
-```
-For older versions of Mac OS X, see [this post](http://mac-how-to.wonderhowto.com/how-to/install-command-line-developer-tools-without-xcode-0168115/).
+# License
+
+Without a license, the PATH Solver can solve problem instances up to with up to 300 variables and 2000 non-zeros. For information regarding license, visit the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) page and the [license page](http://pages.cs.wisc.edu/~ferris/path/LICENSE) of the PATH Solver.
 
 
 # Example 1
