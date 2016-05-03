@@ -102,7 +102,7 @@ This is to define expressions for `F` in MCP. Even when the expression is linear
 ```julia
 complements(m, F, x)
 ```
-This function matches each element of `F` and the complementsing element of `x`.
+This function matches each element of `F` and the complementing element of `x`.
 
 ```julia
 PATHSolver.path_options(   
