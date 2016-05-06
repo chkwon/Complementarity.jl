@@ -31,7 +31,9 @@ z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
 @show z
 
 
-@test z == [2.8, 0.0, 0.8, 1.2]
+@test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+
+
 #########################################################################
 
 
@@ -65,7 +67,7 @@ status = solveMCP(m)
 
 z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
 @show z
-@test z == [2.8, 0.0, 0.8, 1.2]
+@test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 #########################################################################
 
 
@@ -98,10 +100,10 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = getvalue(x)
-@test z[1] == 2.8
-@test z[2] == 0.0
-@test z[3] == 0.8
-@test z[4] == 1.2
+@test isapprox(z[1], 2.8)
+@test isapprox(z[2], 0.0)
+@test isapprox(z[3], 0.8)
+@test isapprox(z[4], 1.2)
 #########################################################################
 
 println("------------------------------------------------------------------")
@@ -136,8 +138,8 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = getvalue(x)
-@test z[1] == 2.8
-@test z[2] == 0.0
-@test z[3] == 0.8
-@test z[4] == 1.2
+@test isapprox(z[1], 2.8)
+@test isapprox(z[2], 0.0)
+@test isapprox(z[3], 0.8)
+@test isapprox(z[4], 1.2)
 #########################################################################
