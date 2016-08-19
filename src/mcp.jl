@@ -20,6 +20,9 @@ function getMCPData(m::Model)
     end
 end
 
+
+
+# The most basic one.
 function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     lb = getlowerbound(var)
     ub = getupperbound(var)
@@ -27,6 +30,11 @@ function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     mcp_data = getMCPData(m)
     push!(mcp_data, new_dimension)
 end
+function complements(m::Model, var::JuMP.Variable, F::JuMP.NonlinearExpression)
+    complements(m, F, var)
+end
+
+
 
 function complements(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuMP.Variable})
     vars = collect(var)
@@ -38,8 +46,14 @@ function complements(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{Ju
         complements(m, Fs[i], vars[i])
     end
 end
+function complements(m::Model, var::Array{JuMP.Variable}, F::Array{JuMP.NonlinearExpression}, )
+    complements(m::Model, F, var)
+end
 
-function complements(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
+
+# complements(::JuMP.Model, ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
+
+function complements(m::Model, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
     vars = collect(var.innerArray)
     Fs = collect(F.innerArray)
 
@@ -49,6 +63,13 @@ function complements(m::Model, F::JuMP.JuMPArray, var::JuMP.JuMPArray)
         complements(m, Fs[i], vars[i])
     end
 end
+function complements(m::Model, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}}, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}})
+    complements(m, F, var)
+end
+
+
+
+
 
 function getBoundsLinearIndex(mcp_data)
     n = length(mcp_data)
