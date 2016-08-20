@@ -50,23 +50,16 @@ function complements(m::Model, var::Array{JuMP.Variable}, F::Array{JuMP.Nonlinea
     complements(m::Model, F, var)
 end
 
+function complements(m::Model,  arr1::JuMP.JuMPArray, arr2::JuMP.JuMPArray)
+    arr1s = collect(arr1.innerArray)
+    arr2s = collect(arr2.innerArray)
 
-# complements(::JuMP.Model, ::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, ::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
+    @assert length(arr1s) == length(arr2s)
 
-function complements(m::Model, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}}, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}})
-    vars = collect(var.innerArray)
-    Fs = collect(F.innerArray)
-
-    @assert length(vars) == length(Fs)
-
-    for i in 1:length(vars)
-        complements(m, Fs[i], vars[i])
+    for i in 1:length(arr1s)
+        complements(m, arr1s[i], arr2s[i])
     end
 end
-function complements(m::Model, var::JuMP.JuMPArray{JuMP.Variable,1,Tuple{UnitRange{Int64}}}, F::JuMP.JuMPArray{JuMP.NonlinearExpression,1,Tuple{UnitRange{Int64}}})
-    complements(m, F, var)
-end
-
 
 
 
