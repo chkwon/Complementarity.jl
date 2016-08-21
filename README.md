@@ -9,9 +9,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/chkwon/Complementarity.jl/badge.svg?branch=master)](https://coveralls.io/github/chkwon/Complementarity.jl?branch=master)
 
 
-This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl). Note that MCP is more general than [Linear Complementarity Problems](https://en.wikipedia.org/wiki/Linear_complementarity_problem) (LCP) and [Nonlinear Complementarity Problems](https://en.wikipedia.org/wiki/Nonlinear_complementarity_problem) (NCP).
+This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) and [NLsolve.jl](https://github.com/EconForge/NLsolve.jl).
 
-This package currently connects with two solvers: [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) and [NLsolve.jl](https://github.com/EconForge/NLsolve.jl).
+Note that MCP is more general than [Linear Complementarity Problems](https://en.wikipedia.org/wiki/Linear_complementarity_problem) (LCP) and [Nonlinear Complementarity Problems](https://en.wikipedia.org/wiki/Nonlinear_complementarity_problem) (NCP).
 
 The form of MCP is as follows:
 ```
@@ -266,4 +266,33 @@ status = Results of Nonlinear Solver Algorithm
  [2] = -7.67758278782679e-13
  [3] = -9.147691538349567e-15
  [4] = 0.5000000002047756
+```
+
+You can access the output of NLsolve by the following fieldnames
+```julia
+julia> fieldnames(status)
+12-element Array{Symbol,1}:
+ :method       
+ :initial_x    
+ :zero         
+ :residual_norm
+ :iterations   
+ :x_converged  
+ :xtol         
+ :f_converged  
+ :ftol         
+ :trace        
+ :f_calls      
+ :g_calls      
+```
+For example:
+```julia
+julia> status.residual_norm
+6.9373147226770016e-9
+
+julia> status.x_converged
+false
+
+julia> status.f_converged
+true
 ```
