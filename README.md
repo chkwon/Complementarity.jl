@@ -9,9 +9,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/chkwon/Complementarity.jl/badge.svg?branch=master)](https://coveralls.io/github/chkwon/Complementarity.jl?branch=master)
 
 
-This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl). Note that MCP is more general than [Linear Complementarity Problems](https://en.wikipedia.org/wiki/Linear_complementarity_problem) (LCP) and [Nonlinear Complementarity Problems](https://en.wikipedia.org/wiki/Nonlinear_complementarity_problem) (NCP). 
+This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) and [NLsolve.jl](https://github.com/EconForge/NLsolve.jl).
 
-While the PATH Solver is the only available algorithm at this moment, this package aims to provide a few more algorithms for solving complementarity problems, perhaps specialized for solving LCP and NCP. It may also connect with the [VariationalInequality.jl](https://github.com/chkwon/VariationalInequality.jl) package.
+Note that MCP is more general than [Linear Complementarity Problems](https://en.wikipedia.org/wiki/Linear_complementarity_problem) (LCP) and [Nonlinear Complementarity Problems](https://en.wikipedia.org/wiki/Nonlinear_complementarity_problem) (NCP).
 
 The form of MCP is as follows:
 ```
@@ -40,14 +40,16 @@ This package `Complementarity.jl` extends the modeling language from [JuMP.jl](h
 Pkg.add("Complementarity")
 ```
 
-This will automatically install `PATHSolver.jl` as well.
+This will automatically install `PATHSolver.jl` and `NLsolve.jl` as well.
 
-# License
+# Solution via PATHSolver.jl
+
+## License
 
 Without a license, the PATH Solver can solve problem instances up to with up to 300 variables and 2000 non-zeros. For information regarding license, visit the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) page and the [license page](http://pages.cs.wisc.edu/~ferris/path/LICENSE) of the PATH Solver.
 
 
-# Example 1
+## Example 1
 
 ```julia
 using Complementarity, JuMP
@@ -77,7 +79,7 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-solveMCP(m)
+status = solveMCP(m, solver=:PATHSolver)
 
 z = getvalue(x)
 ````
@@ -117,7 +119,7 @@ solveMCP(m)
 This solves the MCP and stores the solution inside `m`, which can be accessed by `getvalue(x)` as in JuMP.
 
 
-# Example 2
+## Example 2
 
 This is a translation of [`transmcp.gms`](http://www.gams.com/modlib/libhtml/transmcp.htm) originally written in GAMS.
 
@@ -166,7 +168,7 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-status = solveMCP(m)
+status = solveMCP(m, solver=:PATHSolver)
 
 @show getvalue(x)
 @show getvalue(w)
@@ -198,7 +200,7 @@ getvalue(p) = p: 1 dimensions:
 status = :Solved
 ```
 
-# Status Symbols
+## Status Symbols
 ```julia
 status =
     [ :Solved,              # 1 - solved
@@ -212,3 +214,85 @@ status =
       :InternalError        # 9 - internal error
      ]
  ```
+
+
+# Solution via NLsolve.jl
+
+## Example 3
+
+In the above Example 1, the only different part is
+```julia
+using Complementarity, JuMP
+m = MCPModel()
+
+lb = zeros(4)
+ub = Inf*ones(4)
+items = 1:4
+ @variable(m, lb[i] <= x[i in items] <= ub[i])
+
+@NLexpression(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
+@NLexpression(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
+@NLexpression(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
+@NLexpression(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
+
+complements(m, F1, x[1])
+complements(m, F2, x[2])
+complements(m, F3, x[3])
+complements(m, F4, x[4])
+
+status = solveMCP(m, solver=:NLsolve, method=:trust_region)
+@show status
+
+z = getvalue(x)
+@show z
+```
+
+The result should look like
+```julia
+status = Results of Nonlinear Solver Algorithm
+ * Algorithm: Trust-region with dogleg and autoscaling
+ * Starting Point: [0.0,0.0,0.0,0.0]
+ * Zero: [1.2247448722522958,-7.67758278782679e-13,-9.147691538349567e-15,0.5000000002047756]
+ * Inf-norm of residuals: 0.000000
+ * Iterations: 132
+ * Convergence: true
+   * |x - x'| < 0.0e+00: false
+   * |f(x)| < 1.0e-08: true
+ * Function Calls (f): 133
+ * Jacobian Calls (df/dx): 60
+
+ z = x: 1 dimensions:
+ [1] = 1.2247448722522958
+ [2] = -7.67758278782679e-13
+ [3] = -9.147691538349567e-15
+ [4] = 0.5000000002047756
+```
+
+You can access the output of NLsolve by the following fieldnames
+```julia
+julia> fieldnames(status)
+12-element Array{Symbol,1}:
+ :method       
+ :initial_x    
+ :zero         
+ :residual_norm
+ :iterations   
+ :x_converged  
+ :xtol         
+ :f_converged  
+ :ftol         
+ :trace        
+ :f_calls      
+ :g_calls      
+```
+For example:
+```julia
+julia> status.residual_norm
+6.9373147226770016e-9
+
+julia> status.x_converged
+false
+
+julia> status.f_converged
+true
+```

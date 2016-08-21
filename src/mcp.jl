@@ -78,8 +78,12 @@ end
 
 
 # Placeholder for multiple methods in the future
-function solveMCP(m::Model; method=:path)
-    return _solve_path(m)
+function solveMCP(m::Model; solver=:PATH, method=:trust_region)
+    if solver == :PATH
+        return _solve_path(m)
+    elseif solver == :NLsolve
+        return _solve_nlsolve(m, method=method)
+    end
 end
 
 function sortMCPDataperm(obj::Array{ComplementarityType,1})
@@ -154,6 +158,126 @@ function _solve_path(m::Model)
     # This function has changed the content of m already.
     return status
 end
+
+
+function _solve_nlsolve(m::Model; method=:trust_region)
+
+    function myfunc!(z, fvec)
+        # z is in LindexIndex, passed from PATHSolver
+
+        d = JuMP.NLPEvaluator(m)
+        MathProgBase.initialize(d, [:Grad])
+        # F_val = zeros(n)
+        MathProgBase.eval_g(d, fvec, z)
+
+        # F_val also should be in LindexIndex
+        # since it is the order in which constraints are added
+
+        # return fvec
+    end
+
+    function myjac!(z, fjac)
+        # z is in LindexIndex, passed from PATHSolver
+
+        d = JuMP.NLPEvaluator(m)
+        MathProgBase.initialize(d, [:Grad])
+        I,J = MathProgBase.jac_structure(d)
+        jac_val = zeros(size(J))
+        MathProgBase.eval_jac_g(d, jac_val, z)
+
+        # return matrix also should be in LindexIndex
+        # since it is the order in which constraints are added
+
+        sparse_fjac = sparse(I, J, jac_val)
+        fjac = full(sparse_fjac)
+        # return fjac
+    end
+
+    mcp_data = getMCPData(m)
+    n = length(mcp_data)
+
+    # Two Indices
+    # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
+    # LinearIndex: the order used in JuMP / MathProgBase
+
+    # Declaring MCP operator F as constraints
+    # in order to query Jacobian using AutoDiff thru MathProgBase
+    # i = LinearIndex
+    # Add constraint in the order of LinearIndex
+    p = sortMCPDataperm(mcp_data)
+    @NLconstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
+
+    # lb and ub in LinearIndex
+    lb, ub = getBoundsLinearIndex(mcp_data)
+    initial_z = (lb+ub) / 2
+    for i = 1:length(initial_z)
+        if initial_z[i] == Inf
+            initial_z[i] = lb[i]
+        end
+    end
+
+    # Solve the MCP using PATHSolver
+    # ALL inputs to PATHSolver must be in LinearIndex
+    # status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
+
+    r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_z, method = method,
+        iterations = 10_000)
+    # function mcpsolve{T}(f!::Function,
+    #                   g!::Function,
+    #                   lower::Vector,
+    #                   upper::Vector,
+    #                   initial_x::Vector{T};
+    #                   method::Symbol = :trust_region,
+    #                   reformulation::Symbol = :smooth,
+    #                   xtol::Real = zero(T),
+    #                   ftol::Real = convert(T,1e-8),
+    #                   iterations::Integer = 1_000,
+    #                   store_trace::Bool = false,
+    #                   show_trace::Bool = false,
+    #                   extended_trace::Bool = false,
+    #                   linesearch!::Function = Optim.backtracking_linesearch!,
+    #                   factor::Real = one(T),
+    #                   autoscale::Bool = true)
+
+
+    # julia> fieldnames(r)
+    # 12-element Array{Symbol,1}:
+    #  :method
+    #  :initial_x
+    #  :zero
+    #  :residual_norm
+    #  :iterations
+    #  :x_converged
+    #  :xtol
+    #  :f_converged
+    #  :ftol
+    #  :trace
+    #  :f_calls
+    #  :g_calls
+
+
+    # r.zero is in LinearIndex
+
+    # After solving set the values in m::JuMP.Model to the solution obtained.
+    for i in 1:n
+        setvalue(mcp_data[i].var, r.zero[mcp_data[i].lin_idx])
+    end
+
+    # This function has changed the content of m already.
+    return r
+end
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

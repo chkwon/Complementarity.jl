@@ -6,7 +6,7 @@ module Complementarity
 
 using JuMP
 
-import PATHSolver, MathProgBase
+import PATHSolver, MathProgBase, NLsolve
 
 export  MCPModel, MCPData, Complementarity,
         complements, solveMCP
