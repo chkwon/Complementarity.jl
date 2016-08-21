@@ -11,7 +11,7 @@
 
 This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl). Note that MCP is more general than [Linear Complementarity Problems](https://en.wikipedia.org/wiki/Linear_complementarity_problem) (LCP) and [Nonlinear Complementarity Problems](https://en.wikipedia.org/wiki/Nonlinear_complementarity_problem) (NCP).
 
-This package currently connects with two solvers: [[PATHSolver.jl]](https://github.com/chkwon/PATHSolver.jl) and [[NLsolve.jl]](https://github.com/EconForge/NLsolve.jl).
+This package currently connects with two solvers: [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) and [NLsolve.jl](https://github.com/EconForge/NLsolve.jl).
 
 The form of MCP is as follows:
 ```
