@@ -4,13 +4,14 @@ os:
   - linux
   - osx
 julia:
-  - release
+  - 0.4
+  - 0.5
   - nightly
 notifications:
   email: false
-script:
-    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("Complementarity"); Pkg.test("Complementarity", coverage=true)'
+#script: # use the default script which is equivalent to the following
+#    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#    - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("Complementarity"); Pkg.test("Complementarity", coverage=true)'
 after_success:
     - echo $TRAVIS_JULIA_VERSION
     - julia -e 'cd(Pkg.dir("Complementarity")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
