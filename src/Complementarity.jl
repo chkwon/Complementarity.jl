@@ -14,6 +14,9 @@ export  MCPModel, MCPData, Complementarity,
         complements, solveMCP,
         @complements
 
+mpec_tol = 1e-8
+
+
 include("mcp.jl")
 include("mpec.jl")
 

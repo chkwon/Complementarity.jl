@@ -12,7 +12,7 @@ Related to this package, see
 # `@complements` macro
 
 ```julia
-using JuMP, Ipopt, MPEC
+using JuMP, Ipopt, Complementarity
 m = Model(solver=IpoptSolver())
 ```
 
@@ -52,7 +52,7 @@ See the examples below.
 
 ### `bard1.jl` --- translated from `bard1.mod` in [MacMPEC](https://wiki.mcs.anl.gov/leyffer/index.php/MacMPEC)
 ```julia
-using JuMP, Ipopt, MPEC
+using JuMP, Ipopt, Complementarity
 
 m = Model(solver=IpoptSolver())
 @variable(m, x>=0)
@@ -75,7 +75,7 @@ solve(m)
 
 ### `dempe.jl` --- translated from `dempe.mod` in [MacMPEC](https://wiki.mcs.anl.gov/leyffer/index.php/MacMPEC)
 ```julia
-using JuMP, Ipopt, MPEC
+using JuMP, Ipopt, Complementarity
 
 @mpec_tolerance 100.0
 
@@ -99,7 +99,7 @@ solve(m)
 
 ### `gnash1m.jl` --- translated from `gnash1m.mod` in [MacMPEC](https://wiki.mcs.anl.gov/leyffer/index.php/MacMPEC)
 ```julia
-using JuMP, Ipopt, MPEC
+using JuMP, Ipopt, Complementarity
 
 c = [10, 8, 6, 4, 2]
 K = [5, 5, 5, 5, 5]
