@@ -7,6 +7,9 @@ julia:
   - 0.4
   - 0.5
   - nightly
+addons:
+    apt_packages:
+        - gfortran 
 notifications:
   email: false
 script: # use the default script which is equivalent to the following
