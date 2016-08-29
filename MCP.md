@@ -4,7 +4,7 @@ Note that MCP is more general than [Linear Complementarity Problems](https://en.
 
 The form of MCP is as follows:
 ```
-lb ≤ x ≤ ub ⟂ F(x)
+F(x) ⟂ lb ≤ x ≤ ub
 ```
 which means
 - `x = lb`, then `F(x) ≥ 0`
@@ -13,7 +13,7 @@ which means
 
 When there is no upper bound `ub`, and the lower bound `lb=0`, then it is a regular Nonlinear Complementarity Problem (NCP) of the form:
 ```
-0 ≤ x ⟂ F(x) ≥ 0
+0 ≤ F(x) ⟂ x ≥ 0
 ```
 which means
 ```
