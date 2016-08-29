@@ -23,13 +23,6 @@ When `F(x)` is a linear operator such as `F(x) = M x + q` with matrix `M` and ve
 
 This package `Complementarity.jl` extends the modeling language from [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) to model complementarity problems.
 
-# Installation
-
-```julia
-Pkg.add("Complementarity")
-```
-
-This will automatically install `PATHSolver.jl` and `NLsolve.jl` as well.
 
 # Solution via PATHSolver.jl
 

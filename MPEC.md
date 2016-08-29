@@ -4,10 +4,6 @@
 
 The main objective of this package is to provide the `complements` keyword (macro in this Julia package) that is available in other modeling languages such as GAMS, Pyomo, and AMPL.
 
-Related to this package, see
-- [Complementarity.jl](https://github.com/chkwon/Complementarity.jl)
-- [VariationalInequality.jl](https://github.com/chkwon/VariationalInequality.jl)
-
 
 # `@complements` macro
 
@@ -158,6 +154,8 @@ will add the following macros
 
 
 ## Smooth Nonlinear Transformation
+
+This smooth nonlinear transformation is also called Fischer-Burmeister.
 
 For example,
 ```julia
