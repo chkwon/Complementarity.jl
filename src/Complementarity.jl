@@ -8,7 +8,6 @@ using JuMP
 using Base.Meta
 
 import PATHSolver, MathProgBase, NLsolve
-importall JuMP, Ipopt
 
 export  MCPModel, MCPData, Complementarity,
         complements, solveMCP,
