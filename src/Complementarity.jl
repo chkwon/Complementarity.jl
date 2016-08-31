@@ -9,7 +9,7 @@ using Base.Meta
 
 import PATHSolver, MathProgBase, NLsolve
 
-export  MCPModel, MCPData, Complementarity,
+export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP,
         @complements
 
