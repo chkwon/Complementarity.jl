@@ -288,8 +288,8 @@ end
 
 # Modification of deprecate_macro from JuMP.jl
 macro macro_wrapper(old, new)
-    oldmac = symbol(string("@",old))
-    newmac = symbol(string("@",new))
+    oldmac = Symbol(string("@",old))
+    newmac = Symbol(string("@",new))
     s = string(oldmac," is just a wrapper of Jump.", newmac, ".")
     if VERSION > v"0.5-"
         # backtraces are ok on 0.5
