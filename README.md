@@ -16,12 +16,44 @@ Primarily, this package does the following two things:
 F(x) ⟂ lb ≤ x ≤ ub
 ```
 
+A very simple example:
+```
+(x+2) x = 0,  x ≥ 0,   x-2 ≥ 0
+```
+
+```julia
+using Complementarity, JuMP
+m = MCPModel()
+@variable(m, x >= 0)
+@NLexpression(m, F, x+2)
+complements(m, F, x)
+status = solveMCP(m)
+@show getvalue(x)
+```
+
+
 - For solving [mathematical programs with equilibrium constraints (MPEC)](https://en.wikipedia.org/wiki/Mathematical_programming_with_equilibrium_constraints), this package provides an extension to [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) by providing a macro that accepts complementarity conditions as constraints.  Then it reformulates the complementarity conditions as a set of equality and inequality constraints so that a nonlinear optimization solver such as [Ipopt.jl](https://github.com/JuliaOpt/Ipopt.jl) can solve the problem. See [the documentation](MPEC.md).
 
 ```
 min  f(x)
 s.t. g(x) ≤ 0
-     F(x) ⟂ lb ≤ x ≤ ub 
+     F(x) ⟂ lb ≤ x ≤ ub
+```
+
+A very simple example:
+```
+min  x^3
+s.t. (x+2) x = 0,  x ≥ 0,   x+2 ≥ 0
+```
+
+```julia
+using JuMP, Ipopt, Complementarity
+m = Model(solver=IpoptSolver())
+@variable(m, x>=0)
+@NLobjective(m, Min, x^3)
+@complements(m, 0 <= x+2,   x >= 0)
+solve(m)
+@show getvalue(x)
 ```
 
 # Installation
