@@ -18,7 +18,7 @@ F(x) ⟂ lb ≤ x ≤ ub
 
 A very simple example:
 ```
-(x+2) x = 0,  x ≥ 0,   x-2 ≥ 0
+(x+2) x = 0,  x ≥ 0,   x+2 ≥ 0
 ```
 
 ```julia
