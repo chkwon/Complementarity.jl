@@ -6,7 +6,10 @@ os:
 julia:
   - 0.4
   - 0.5
-  # - nightly
+  - nightly
+matrix:
+  allow_failures:
+    - julia: nightly  
 addons:
     apt_packages:
         - gfortran
