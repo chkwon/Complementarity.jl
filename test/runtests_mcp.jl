@@ -22,7 +22,7 @@ complements(m, F2, x2)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
-                "output no",
+                "output yes",
                 "time_limit 3600"
                 )
 status = solveMCP(m)
@@ -60,7 +60,7 @@ complements(m, F4, x4)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
-                "output no",
+                "output yes",
                 "time_limit 3600"
                 )
 status = solveMCP(m)
@@ -87,19 +87,19 @@ q = [2; 2; -2; -6]
 lb = zeros(4)
 ub = Inf*ones(4)
 
-@variable(m, lb[i] <= x[i in 1:4] <= ub[i])
-@NLexpression(m, F[i=1:4], sum{M[i,j]*x[j], j=1:4} + q[i])
-complements(m, F, x)
+@variable(m, lb[i] <= myvariablename[i in 1:4] <= ub[i])
+@NLexpression(m, F[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
+complements(m, F, myvariablename)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
-                "output no",
+                "output yes",
                 "time_limit 3600"
                 )
 
 status = solveMCP(m)
 
-z = getvalue(x)
+z = getvalue(myvariablename)
 @test isapprox(z[1], 2.8)
 @test isapprox(z[2], 0.0)
 @test isapprox(z[3], 0.8)
@@ -126,7 +126,7 @@ items = 1:4
 
 @variable(m, lb[i] <= x[i in items] <= ub[i])
 # @variable(m, x[i in items] >= 0)
-@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@NLexpression(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
 complements(m, F, x)
 
 PATHSolver.path_options(
@@ -168,7 +168,7 @@ items = 1:4
 
 # @variable(m, lb[i] <= x[i in items] <= ub[i])
 @variable(m, x[i in items] >= 0)
-@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@NLexpression(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
 complements(m, F, x)
 
 status = solveMCP(m, solver=:NLsolve)

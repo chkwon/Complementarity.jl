@@ -4,6 +4,8 @@ type ComplementarityType
     ub::Float64
     F::JuMP.NonlinearExpression
     lin_idx::Int
+    var_name::String
+    # F_name::String
 end
 
 function MCPModel()
@@ -26,7 +28,8 @@ end
 function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
     lb = getlowerbound(var)
     ub = getupperbound(var)
-    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var))
+    var_name = getname(var)
+    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name)
     mcp_data = getMCPData(m)
     push!(mcp_data, new_dimension)
 end
@@ -75,6 +78,14 @@ function getBoundsLinearIndex(mcp_data)
     return lb, ub
 end
 
+function getVarNameLinearIndex(mcp_data)
+    n = length(mcp_data)
+    var_name = Array{String}(n)
+    for i in 1:n
+        var_name[linearindex(mcp_data[i].var)] = mcp_data[i].var_name
+    end
+    return var_name
+end
 
 
 # Placeholder for multiple methods in the future
@@ -145,9 +156,12 @@ function _solve_path(m::Model)
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
 
+    # var_name in LinearIndex
+    var_name = getVarNameLinearIndex(mcp_data)
+
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
-    status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
+    status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, var_name)
     # z, f are in LinearIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
@@ -275,7 +289,38 @@ end
 
 
 
+macro operator(args...)
+    if length(args) <= 2
+        error("in @operator: To few arguments ($(length(args))); must pass the model and nonlinear expression as arguments.")
+    # elseif length(args) == 2
+    #     m, x = args
+    #     m = esc(m)
+    #     c = gensym()
+    elseif length(args) == 3
+        m, c, x = args
+        m = esc(m)
+    else
+        error("in @operator: To many arguments ($(length(args))).")
+    end
 
+    println(c)
+    quote
+      println()
+    end
+    #
+    # anonvar = isexpr(c, :vect) || isexpr(c, :vcat)
+    # variable = gensym()
+    # escvarname  = anonvar ? variable : esc(getname(c))
+    #
+    # refcall, idxvars, idxsets, idxpairs, condition = buildrefsets(c, variable)
+    # code = quote
+    #     $(refcall) = NonlinearExpression($m, @processNLExpr($m, $(esc(x))))
+    # end
+    # return assert_validmodel(m, quote
+    #     $(getloopedcode(variable, code, condition, idxvars, idxsets, idxpairs, :NonlinearExpression))
+    #     $(anonvar ? variable : :($escvarname = $variable))
+    # end)
+end
 
 
 
@@ -307,4 +352,4 @@ macro macro_wrapper(old, new)
     return
 end
 
-@macro_wrapper mapping defNLExpr
+@macro_wrapper mapping NLexpression

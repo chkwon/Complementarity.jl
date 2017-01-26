@@ -45,8 +45,8 @@ m = MCPModel()
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
 @NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@NLexpression(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
-@NLexpression(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
+@NLexpression(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@NLexpression(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
 complements(m, profit, x)
 complements(m, supply, w)
