@@ -137,8 +137,8 @@ m = MCPModel()
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
 @NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@NLexpression(m, supply[i in plants],                  a[i] - sum{x[i,j], j in markets})
-@NLexpression(m, fxdemand[j in markets],               sum{x[i,j], i in plants} - b[j])
+@NLexpression(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@NLexpression(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
 complements(m, profit, x)
 complements(m, supply, w)
@@ -150,12 +150,16 @@ PATHSolver.path_options(
                 "time_limit 3600"
                 )
 
-status = solveMCP(m, solver=:PATHSolver)
+status = solveMCP(m)
 
 @show getvalue(x)
 @show getvalue(w)
 @show getvalue(p)
+
 @show status
+@assert status == :Solved
+@assert getvalue(x["seattle", "chicago"]) == 300.0
+@assert getvalue(p["topeka"]) == 0.126
 ```
 
 The result is
@@ -185,16 +189,16 @@ status = :Solved
 ## Status Symbols
 ```julia
 status =
-    [ :Solved,              # 1 - solved
-      :StationaryPoint,     # 2 - stationary point found
-      :MajorIterLimit,      # 3 - major iteration limit
-      :MinorIterLimit,      # 4 - cumulative minor iteration limit
-      :TimeLimit,           # 5 - time limit
-      :Interrupt,           # 6 - user interrupt
-      :BoundError,          # 7 - bound error (lb is not less than ub)
-      :DominaError,         # 8 - domain error (could not find a starting point)
-      :InternalError        # 9 - internal error
-     ]
+ [  :Solved,                          # 1 - solved
+    :StationaryPointFound,            # 2 - stationary point found
+    :MajorIterationLimit,             # 3 - major iteration limit
+    :CumulativeMinorIterationLimit,   # 4 - cumulative minor iteration limit
+    :TimeLimit,                       # 5 - time limit
+    :UserInterrupt,                   # 6 - user interrupt
+    :BoundError,                      # 7 - bound error (lb is not less than ub)
+    :DomainError,                     # 8 - domain error (could not find a starting point)
+    :InternalError                    # 9 - internal error
+  ]
  ```
 
 
