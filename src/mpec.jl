@@ -300,31 +300,33 @@ macro complements(args...)
 
         # Additional variables are defined
         # v defined
-        v = copy(var)
-        v.args[1] = Symbol(join(["v", gensym(), var.args[1]]))
-        v_expr = Expr(:call, esc(:>=), esc(v), 0)
-        push!(code.args, Expr(:macrocall, Symbol("@variable"), m, v_expr))
+        push!(code.args,
+              Expr(:(=), esc(:v) ,
+                Expr(:macrocall, Symbol("@variable"), m,
+                  Expr(:kw, :lowerbound,0)
+                ) ) )
 
         # w defined
-        w = copy(var)
-        w.args[1] = Symbol(join(["w", gensym(), var.args[1]]))
-        w_expr = Expr(:call, esc(:>=), esc(w), 0)
-        push!(code.args, Expr(:macrocall, Symbol("@variable"), m, w_expr))
+        push!(code.args,
+              Expr(:(=), esc(:w) ,
+                Expr(:macrocall, Symbol("@variable"), m,
+                  Expr(:kw, :lowerbound,0)
+                ) ) )
 
         # v - w = func
-        vwdiff = Expr(:call, esc(:(-)), esc(v), esc(w))
+        vwdiff = Expr(:call, esc(:(-)), esc(:v), esc(:w))
         # expr = Expr(:comparison, vwdiff, esc(:(==)), esc(func))
         expr = Expr(:call, esc(:(==)), vwdiff, esc(func))
         push!(code.args, Expr(:macrocall, Symbol("@constraint"), m, expr))
 
         # v * (x-lb) = 0
         c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
-        expr = get_complementarity(c1, esc(v), method)
+        expr = get_complementarity(c1, esc(:v), method)
         push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
         # w * (ub - x) = 0
         c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
-        expr = get_complementarity(c1, esc(w), method)
+        expr = get_complementarity(c1, esc(:w), method)
         push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
     elseif Fhaslb && xhaslb
