@@ -4,12 +4,11 @@ os:
   - linux
   - osx
 julia:
-  - 0.4
   - 0.5
   - nightly
 matrix:
   allow_failures:
-    - julia: nightly  
+    - julia: nightly
 addons:
     apt_packages:
         - gfortran
