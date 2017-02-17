@@ -91,8 +91,8 @@ lb = zeros(4)
 ub = Inf*ones(4)
 
 @variable(m, lb[i] <= myvariablename[i in 1:4] <= ub[i])
-@operator(m, F[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
-@complementarity(m, F, myvariablename)
+@operator(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
+@complementarity(m, myconst, myvariablename)
 
 PATHSolver.path_options(
                 "convergence_tolerance 1e-8",
