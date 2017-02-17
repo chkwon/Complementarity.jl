@@ -44,9 +44,9 @@ m = MCPModel()
 
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@operator(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@operator(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
-@operator(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
+@mapping(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@mapping(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@mapping(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
 @complementarity(m, profit, x)
 @complementarity(m, supply, w)

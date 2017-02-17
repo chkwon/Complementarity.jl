@@ -19,7 +19,7 @@ which means
 ```
 F(x)' x = 0, F(x) ≥ 0, x ≥ 0
 ```
-When `F(x)` is a linear operator such as `F(x) = M x + q` with matrix `M` and vector `q`, then it is a Linear Complementarity Problem (LCP). All these problems are solved by the [PATH Solver](http://pages.cs.wisc.edu/%7Eferris/path.html) which is wrapped by the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) package.
+When `F(x)` is a linear mapping such as `F(x) = M x + q` with matrix `M` and vector `q`, then it is a Linear Complementarity Problem (LCP). All these problems are solved by the [PATH Solver](http://pages.cs.wisc.edu/%7Eferris/path.html) which is wrapped by the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) package.
 
 This package `Complementarity.jl` extends the modeling language from [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) to model complementarity problems.
 
@@ -52,7 +52,7 @@ items = 1:4
 
 # @variable(m, lb[i] <= x[i in items] <= ub[i])
 @variable(m, x[i in items] >= 0)
-@operator(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 @complementarity(m, F, x)
 
 PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
@@ -75,7 +75,7 @@ This line prepares a JuMP Model, just same as in [JuMP.jl](https://github.com/Ju
 Defining variables is exactly same as in JuMP.jl. Lower and upper bounds on the variables in the MCP model should be provided here.
 
 ```julia
-@operator(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 ```
 This is to define expressions for `F` in MCP. This is merely an alias of `JuMP.@NLexpression`.
 
@@ -130,9 +130,9 @@ m = MCPModel()
 
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@operator(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@operator(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
-@operator(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
+@mapping(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@mapping(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@mapping(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
 @complementarity(m, profit, x)
 @complementarity(m, supply, w)
@@ -207,10 +207,10 @@ ub = Inf*ones(4)
 items = 1:4
 @variable(m, lb[i] <= x[i in items] <= ub[i])
 
-@operator(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
-@operator(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
-@operator(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
-@operator(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
+@mapping(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
+@mapping(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
+@mapping(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
+@mapping(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
 
 @complementarity(m, F1, x[1])
 @complementarity(m, F2, x[2])

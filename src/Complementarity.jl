@@ -11,7 +11,7 @@ import PATHSolver, MathProgBase, NLsolve
 
 export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP,
-        @complementarity, @complements, @operator
+        @complementarity, @complements, @mapping
 
 mpec_tol = 1e-8
 

@@ -151,7 +151,7 @@ function _solve_path(m::Model)
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
     # LinearIndex: the order used in JuMP / MathProgBase
 
-    # Declaring MCP operator F as constraints
+    # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
@@ -219,7 +219,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
     # LinearIndex: the order used in JuMP / MathProgBase
 
-    # Declaring MCP operator F as constraints
+    # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
@@ -294,9 +294,9 @@ end
 
 
 
-macro operator(args...)
+macro mapping(args...)
   if length(args) != 3
-    error("3 arguments are required in @operator(...)")
+    error("3 arguments are required in @mapping(...)")
   end
 
   m = args[1]

@@ -103,7 +103,7 @@ macro complements(args...)
             # lb <= x <= ub
             var = x.args[3]
             (x.args[4] != :<= && x.args[4] != :≤) &&
-                complements_error(args, "Expected <= operator after variable name.")
+                complements_error(args, "Expected <= mapping after variable name.")
 
             lb_x = esc_nonconstant(x.args[1])
             ub_x = esc_nonconstant(x.args[5])
@@ -192,7 +192,7 @@ macro complements(args...)
             # lb <= x <= ub
             func = F.args[3]
             (F.args[4] != :<= && F.args[4] != :≤) &&
-                complements_error(args, "Expected <= operator after function expression.")
+                complements_error(args, "Expected <= mapping after function expression.")
             lb_F = esc_nonconstant(F.args[1])
             ub_F = esc_nonconstant(F.args[5])
 
