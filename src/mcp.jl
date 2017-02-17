@@ -309,6 +309,14 @@ macro operator(args...)
 end
 
 
+function add_complementarity(m, var, F, F_name)
+  lb = getlowerbound(var)
+  ub = getupperbound(var)
+  var_name = getname(var)
+  new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name, F_name)
+  mcp_data = getMCPData(m)
+  push!(mcp_data, new_dimension)
+end
 
 macro complementarity(m, F, var)
   F_base_name = string(F)
@@ -326,16 +334,19 @@ macro complementarity(m, F, var)
 
     if isa($var, JuMP.Variable)
       # when var is a single JuMP variable
-      lb = getlowerbound($var)
-      ub = getupperbound($var)
-      var_name = getname($var)
-      F_name = $F_base_name
-      new_dimension = ComplementarityType(lb, $var, ub, $F, linearindex($var), var_name, F_name)
-      mcp_data = getMCPData($m)
-      push!(mcp_data, new_dimension)
+      println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Case 1")
+      add_complementarity($m, $var, $F, $F_base_name)
+      # lb = getlowerbound($var)
+      # ub = getupperbound($var)
+      # var_name = getname($var)
+      # F_name = $F_base_name
+      # new_dimension = ComplementarityType(lb, $var, ub, $F, linearindex($var), var_name, F_name)
+      # mcp_data = getMCPData($m)
+      # push!(mcp_data, new_dimension)
 
     elseif isa($var, Array{JuMP.Variable, 1})
       # when var is a single dimensional Array of JuMP.Variable
+      println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Case 2")
       idx_list = 1:length($var)
 
       for idx in idx_list
@@ -344,33 +355,35 @@ macro complementarity(m, F, var)
         var_idx = $var[idx]
         F_idx = $F[idx]
 
-        lb = getlowerbound(var_idx)
-        ub = getupperbound(var_idx)
-        var_name = getname(var_idx)
-        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
-        mcp_data = getMCPData($m)
-        push!(mcp_data, new_dimension)
+        add_complementarity($m, var_idx, F_idx, F_name)
+        # lb = getlowerbound(var_idx)
+        # ub = getupperbound(var_idx)
+        # var_name = getname(var_idx)
+        # new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+        # mcp_data = getMCPData($m)
+        # push!(mcp_data, new_dimension)
       end
 
-    elseif isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1
-      # when var is a single dimensional JuMPArray of JuMP.Variable
-      idx_list = $var.indexsets[1]
-      for idx in idx_list
-        idx_name = idx
-        F_name = string($F_base_name, "[", idx_name, "]")
-        var_idx = $var[idx]
-        F_idx = $F[idx]
-
-        lb = getlowerbound(var_idx)
-        ub = getupperbound(var_idx)
-        var_name = getname(var_idx)
-        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
-        mcp_data = getMCPData($m)
-        push!(mcp_data, new_dimension)
-      end
+    # elseif isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1
+    #   # when var is a single dimensional JuMPArray of JuMP.Variable
+    #   idx_list = $var.indexsets[1]
+    #   for idx in idx_list
+    #     idx_name = idx
+    #     F_name = string($F_base_name, "[", idx_name, "]")
+    #     var_idx = $var[idx]
+    #     F_idx = $F[idx]
+    #
+    #     lb = getlowerbound(var_idx)
+    #     ub = getupperbound(var_idx)
+    #     var_name = getname(var_idx)
+    #     new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+    #     mcp_data = getMCPData($m)
+    #     push!(mcp_data, new_dimension)
+    #   end
 
     else
       # when var is a multi-dimensional JuMP variable array
+      println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Case 3")
       ex = :(Base.product())
       for i in 1:length($var.indexsets)
         push!(ex.args, $var.indexsets[i])
@@ -379,10 +392,10 @@ macro complementarity(m, F, var)
 
       for idx in idx_list
         idx_name = idx
-        F_name = string($F_base_name, "[", idx_name, "]")
-        F_name = replace(F_name, "\"", "")
-        F_name = replace(F_name, "(", "")
-        F_name = replace(F_name, ")", "")
+        # F_name = string($F_base_name, "[", idx_name, "]")
+        # F_name = replace(F_name, "\"", "")
+        # F_name = replace(F_name, "(", "")
+        # F_name = replace(F_name, ")", "")
 
         F_name = string($F_base_name, "[", join(idx_name,","), "]")
 
@@ -402,12 +415,13 @@ macro complementarity(m, F, var)
         #   var_idx = var_ex
         #   F_idx = F_ex
         # end
-        lb = getlowerbound(var_idx)
-        ub = getupperbound(var_idx)
-        var_name = getname(var_idx)
-        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
-        mcp_data = getMCPData($m)
-        push!(mcp_data, new_dimension)
+        add_complementarity($m, var_idx, F_idx, F_name)
+        # lb = getlowerbound(var_idx)
+        # ub = getupperbound(var_idx)
+        # var_name = getname(var_idx)
+        # new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+        # mcp_data = getMCPData($m)
+        # push!(mcp_data, new_dimension)
       end
     end
   end # end of quote
