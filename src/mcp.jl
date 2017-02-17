@@ -5,7 +5,7 @@ type ComplementarityType
     F::JuMP.NonlinearExpression
     lin_idx::Int
     var_name::String
-    # F_name::String
+    F_name::String
 end
 
 function MCPModel()
@@ -26,10 +26,12 @@ end
 
 # The most basic one.
 function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
+    Base.depwarn("complements is deprecated. Use @complementarity instead.", :complements)
     lb = getlowerbound(var)
     ub = getupperbound(var)
     var_name = getname(var)
-    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name)
+    F_name = ""
+    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name, F_name)
     mcp_data = getMCPData(m)
     push!(mcp_data, new_dimension)
 end
@@ -78,13 +80,16 @@ function getBoundsLinearIndex(mcp_data)
     return lb, ub
 end
 
-function getVarNameLinearIndex(mcp_data)
+
+function getNamesLinearIndex(mcp_data)
     n = length(mcp_data)
     var_name = Array{String}(n)
+    F_name = Array{String}(n)
     for i in 1:n
         var_name[linearindex(mcp_data[i].var)] = mcp_data[i].var_name
+        F_name[linearindex(mcp_data[i].var)] = mcp_data[i].F_name
     end
-    return var_name
+    return var_name, F_name
 end
 
 
@@ -156,12 +161,12 @@ function _solve_path(m::Model)
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
 
-    # var_name in LinearIndex
-    var_name = getVarNameLinearIndex(mcp_data)
+    # var_name, F_name in LinearIndex
+    var_name, F_name = getNamesLinearIndex(mcp_data)
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
-    status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, var_name)
+    status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, var_name, F_name)
     # z, f are in LinearIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
@@ -290,66 +295,129 @@ end
 
 
 macro operator(args...)
-    if length(args) <= 2
-        error("in @operator: To few arguments ($(length(args))); must pass the model and nonlinear expression as arguments.")
-    # elseif length(args) == 2
-    #     m, x = args
-    #     m = esc(m)
-    #     c = gensym()
-    elseif length(args) == 3
-        m, c, x = args
-        m = esc(m)
-    else
-        error("in @operator: To many arguments ($(length(args))).")
-    end
+  if length(args) != 3
+    error("3 arguments are required in @operator(...)")
+  end
 
-    println(c)
-    quote
-      println()
-    end
-    #
-    # anonvar = isexpr(c, :vect) || isexpr(c, :vcat)
-    # variable = gensym()
-    # escvarname  = anonvar ? variable : esc(getname(c))
-    #
-    # refcall, idxvars, idxsets, idxpairs, condition = buildrefsets(c, variable)
-    # code = quote
-    #     $(refcall) = NonlinearExpression($m, @processNLExpr($m, $(esc(x))))
-    # end
-    # return assert_validmodel(m, quote
-    #     $(getloopedcode(variable, code, condition, idxvars, idxsets, idxpairs, :NonlinearExpression))
-    #     $(anonvar ? variable : :($escvarname = $variable))
-    # end)
+  m = args[1]
+  name = args[2]
+  ex = args[3]
+
+  expression = Expr(:macrocall, Symbol("@NLexpression"), m, name, ex)
+
+  return esc(expression)
 end
 
 
 
+macro complementarity(m, F, var)
+  F_base_name = string(F)
+  F_sym = string(F)
+  var_sym = string(var)
 
+  m = esc(m)
+  F = esc(F)
+  var = esc(var)
 
+  quote
+    if isa($F, JuMP.JuMPArray)
+      @assert length($F) == length($var)
+    end
 
-# The below will be useful for creating wrapper macros
-# so that users don't need to do 'using Complementarity, JuMP'
-# but, just 'using Complementarity'
+    if isa($var, JuMP.Variable)
+      # when var is a single JuMP variable
+      lb = getlowerbound($var)
+      ub = getupperbound($var)
+      var_name = getname($var)
+      F_name = $F_base_name
+      new_dimension = ComplementarityType(lb, $var, ub, $F, linearindex($var), var_name, F_name)
+      mcp_data = getMCPData($m)
+      push!(mcp_data, new_dimension)
 
-# Modification of deprecate_macro from JuMP.jl
-macro macro_wrapper(old, new)
-    oldmac = Symbol(string("@",old))
-    newmac = Symbol(string("@",new))
-    s = string(oldmac," is just a wrapper of Jump.", newmac, ".")
-    if VERSION > v"0.5-"
-        # backtraces are ok on 0.5
-        # depwarn = :(Base.depwarn($s,$(Meta.quot(oldmac))))
-        depwarn = :()
+    elseif isa($var, Array{JuMP.Variable, 1})
+      # when var is a single dimensional Array of JuMP.Variable
+      idx_list = 1:length($var)
+
+      for idx in idx_list
+        idx_name = idx
+        F_name = string($F_base_name, "[", idx_name, "]")
+        var_idx = $var[idx]
+        F_idx = $F[idx]
+
+        lb = getlowerbound(var_idx)
+        ub = getupperbound(var_idx)
+        var_name = getname(var_idx)
+        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+        mcp_data = getMCPData($m)
+        push!(mcp_data, new_dimension)
+      end
+
+    elseif isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1
+      # when var is a single dimensional JuMPArray of JuMP.Variable
+      idx_list = $var.indexsets[1]
+      for idx in idx_list
+        idx_name = idx
+        F_name = string($F_base_name, "[", idx_name, "]")
+        var_idx = $var[idx]
+        F_idx = $F[idx]
+
+        lb = getlowerbound(var_idx)
+        ub = getupperbound(var_idx)
+        var_name = getname(var_idx)
+        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+        mcp_data = getMCPData($m)
+        push!(mcp_data, new_dimension)
+      end
+
     else
-        # backtraces are junk on 0.4
-        # depwarn = :(Base.warn_once($s))
-        depwarn = :()
-    end
-    @eval macro $old(args...)
-        return Expr(:block, $depwarn, Expr(:macrocall, $(Meta.quot(newmac)), [esc(x) for x in args]...))
-    end
-    eval(Expr(:export,oldmac))
-    return
-end
+      # when var is a multi-dimensional JuMP variable array
+      ex = :(Base.product())
+      for i in 1:length($var.indexsets)
+        push!(ex.args, $var.indexsets[i])
+      end
+      idx_list = collect(eval(ex))
 
-@macro_wrapper mapping NLexpression
+      for idx in idx_list
+        idx_name = idx
+        F_name = string($F_base_name, "[", idx_name, "]")
+        F_name = replace(F_name, "\"", "")
+        F_name = replace(F_name, "(", "")
+        F_name = replace(F_name, ")", "")
+
+        F_name = string($F_base_name, "[", join(idx_name,","), "]")
+
+        var_idx = $var[idx...]
+        F_idx = $F[idx...]
+
+        # if length(idx) == 1
+        #   var_idx = $var[idx]
+        #   F_idx = $F[idx]
+        # else
+        #   var_ex = Expr(:ref, Symbol($var_sym))
+        #   F_ex = Expr(:ref, Symbol($F_sym))
+        #   for j in 1:length(idx)
+        #     push!(var_ex.args, idx[j])
+        #     push!(F_ex.args, idx[j])
+        #   end
+        #   var_idx = var_ex
+        #   F_idx = F_ex
+        # end
+        lb = getlowerbound(var_idx)
+        ub = getupperbound(var_idx)
+        var_name = getname(var_idx)
+        new_dimension = ComplementarityType(lb, var_idx, ub, F_idx, linearindex(var_idx), var_name, F_name)
+        mcp_data = getMCPData($m)
+        push!(mcp_data, new_dimension)
+      end
+    end
+  end # end of quote
+
+
+
+end # end of @complementarity
+
+
+
+
+
+#
