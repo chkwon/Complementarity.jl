@@ -31,8 +31,9 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
+Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
 @show z
-
+@show Fz
 
 @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 
@@ -69,7 +70,10 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
+Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
 @show z
+@show Fz
+
 @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 #########################################################################
 
@@ -103,6 +107,11 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = getvalue(myvariablename)
+Fz = getvalue(myconst)
+
+@show z
+@show Fz
+
 @test isapprox(z[1], 2.8)
 @test isapprox(z[2], 0.0)
 @test isapprox(z[3], 0.8)
@@ -141,6 +150,11 @@ PATHSolver.path_options(
 status = solveMCP(m)
 
 z = getvalue(x)
+# Fz = getvalue(F) # currently produces an error
+
+@show z
+# @show Fz
+
 @test isapprox(z[1], 2.8)
 @test isapprox(z[2], 0.0)
 @test isapprox(z[3], 0.8)
@@ -178,7 +192,11 @@ status = solveMCP(m, solver=:NLsolve)
 @show status
 
 z = getvalue(x)
+# Fz = getvalue(F)
+
 @show z
+# @show Fz
+
 # @test isapprox(z[1], 2.8)
 # @test isapprox(z[2], 0.0)
 # @test isapprox(z[3], 0.8)
@@ -194,7 +212,7 @@ m = MCPModel()
 lb = zeros(4)
 ub = Inf*ones(4)
 items = 1:4
- @variable(m, lb[i] <= x[i in items] <= ub[i])
+@variable(m, lb[i] <= x[i in items] <= ub[i])
 
 @operator(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
 @operator(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
@@ -210,7 +228,10 @@ status = solveMCP(m, solver=:NLsolve, method=:trust_region)
 @show status
 
 z = getvalue(x)
+Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+
 @show z
+@show Fz
 
 # @test isapprox(z[1], 1.2247, atol=1e-4)
 # @test isapprox(z[2], 0.0, atol=1e-4)
