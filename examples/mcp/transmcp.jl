@@ -42,7 +42,7 @@ m = MCPModel()
 @variable(m, p[j in markets] >= 0)
 @variable(m, x[i in plants, j in markets] >= 0)
 
-@operator(m, c[i in plants, j in markets], f * d[i,j] / 1000)
+@NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
 @operator(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
 @operator(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
@@ -52,11 +52,8 @@ m = MCPModel()
 @complementarity(m, supply, w)
 @complementarity(m, fxdemand, p)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 
 status = solveMCP(m)
 

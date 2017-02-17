@@ -23,11 +23,7 @@ m = MCPModel()
 @complementarity(m, F2, x2)
 
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 status = solveMCP(m)
 
 z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
@@ -62,11 +58,8 @@ m = MCPModel()
 @complementarity(m, F1, x1)
 @complementarity(m, F4, x4)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 status = solveMCP(m)
 
 z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
@@ -98,11 +91,8 @@ ub = Inf*ones(4)
 @operator(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
 @complementarity(m, myconst, myvariablename)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 
 status = solveMCP(m)
 
@@ -141,11 +131,8 @@ items = 1:4
 @operator(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
 @complementarity(m, F, x)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output no",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
+
 
 status = solveMCP(m)
 
