@@ -9,7 +9,9 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/pcb5nb5tsstueq1f?svg=true)](https://ci.appveyor.com/project/chkwon/complementarity-jl)
 [![Coverage Status](https://coveralls.io/repos/github/chkwon/Complementarity.jl/badge.svg?branch=master)](https://coveralls.io/github/chkwon/Complementarity.jl?branch=master)
 
-Primarily, this package does the following two things:
+This package provides modeling language for (1) mixed complementarity problems (MCP) and (2) mathematical programs with equilibrium problems (MPEC).
+
+**NOTE** `@complmentarity` for MCP and `@complements` for MPEC.
 
 ## Mixed Complementarity Problems (MCP)
 
