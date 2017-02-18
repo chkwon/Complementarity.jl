@@ -28,8 +28,8 @@ A very simple example:
 using Complementarity, JuMP
 m = MCPModel()
 @variable(m, x >= 0)
-@NLexpression(m, F, x+2)
-complements(m, F, x)
+@mapping(m, F, x+2)
+@complementarity(m, F, x)
 status = solveMCP(m)
 @show getvalue(x)
 ```
