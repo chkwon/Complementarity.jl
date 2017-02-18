@@ -44,19 +44,16 @@ m = MCPModel()
 
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@NLexpression(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
-@NLexpression(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
+@mapping(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@mapping(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@mapping(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
-complements(m, profit, x)
-complements(m, supply, w)
-complements(m, fxdemand, p)
+@complementarity(m, profit, x)
+@complementarity(m, supply, w)
+@complementarity(m, fxdemand, p)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 
 status = solveMCP(m)
 

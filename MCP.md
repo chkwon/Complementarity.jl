@@ -19,7 +19,7 @@ which means
 ```
 F(x)' x = 0, F(x) ≥ 0, x ≥ 0
 ```
-When `F(x)` is a linear operator such as `F(x) = M x + q` with matrix `M` and vector `q`, then it is a Linear Complementarity Problem (LCP). All these problems are solved by the [PATH Solver](http://pages.cs.wisc.edu/%7Eferris/path.html) which is wrapped by the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) package.
+When `F(x)` is a linear mapping such as `F(x) = M x + q` with matrix `M` and vector `q`, then it is a Linear Complementarity Problem (LCP). All these problems are solved by the [PATH Solver](http://pages.cs.wisc.edu/%7Eferris/path.html) which is wrapped by the [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) package.
 
 This package `Complementarity.jl` extends the modeling language from [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) to model complementarity problems.
 
@@ -52,14 +52,11 @@ items = 1:4
 
 # @variable(m, lb[i] <= x[i in items] <= ub[i])
 @variable(m, x[i in items] >= 0)
-@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
-complements(m, F, x)
+@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@complementarity(m, F, x)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-2",
-                "output no",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 
 status = solveMCP(m, solver=:PATHSolver)
 
@@ -78,20 +75,17 @@ This line prepares a JuMP Model, just same as in [JuMP.jl](https://github.com/Ju
 Defining variables is exactly same as in JuMP.jl. Lower and upper bounds on the variables in the MCP model should be provided here.
 
 ```julia
-@NLexpression(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 ```
-This is to define expressions for `F` in MCP. Even when the expression is linear or quadratic, you should use the nonlinear version `@NLexpression`.
+This is to define expressions for `F` in MCP. This is merely an alias of `JuMP.@NLexpression`.
 
 ```julia
-complements(m, F, x)
+@complementarity(m, F, x)
 ```
-This function matches each element of `F` and the complementing element of `x`.
+This macro matches each element of `F` and the complementing element of `x`.
 
 ```julia
-PATHSolver.path_options(   
-                "convergence_tolerance 100",
-                "output no",
-                "time_limit 3600"      )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 ```
 This adjusts options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
 
@@ -136,19 +130,16 @@ m = MCPModel()
 
 @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
 
-@NLexpression(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
-@NLexpression(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
-@NLexpression(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
+@mapping(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
+@mapping(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
+@mapping(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
 
-complements(m, profit, x)
-complements(m, supply, w)
-complements(m, fxdemand, p)
+@complementarity(m, profit, x)
+@complementarity(m, supply, w)
+@complementarity(m, fxdemand, p)
 
-PATHSolver.path_options(
-                "convergence_tolerance 1e-8",
-                "output yes",
-                "time_limit 3600"
-                )
+PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
 
 status = solveMCP(m)
 
@@ -206,7 +197,7 @@ status =
 
 ## Example 3
 
-In the above Example 1, the only different part is
+In the above Example 1, the only different part is to use `solver=:NLsolve`.
 ```julia
 using Complementarity, JuMP
 m = MCPModel()
@@ -214,17 +205,17 @@ m = MCPModel()
 lb = zeros(4)
 ub = Inf*ones(4)
 items = 1:4
- @variable(m, lb[i] <= x[i in items] <= ub[i])
+@variable(m, lb[i] <= x[i in items] <= ub[i])
 
-@NLexpression(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
-@NLexpression(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
-@NLexpression(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
-@NLexpression(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
+@mapping(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
+@mapping(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
+@mapping(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
+@mapping(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
 
-complements(m, F1, x[1])
-complements(m, F2, x[2])
-complements(m, F3, x[3])
-complements(m, F4, x[4])
+@complementarity(m, F1, x[1])
+@complementarity(m, F2, x[2])
+@complementarity(m, F3, x[3])
+@complementarity(m, F4, x[4])
 
 status = solveMCP(m, solver=:NLsolve, method=:trust_region)
 @show status
