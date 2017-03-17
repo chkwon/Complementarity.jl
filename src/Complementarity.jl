@@ -1,9 +1,11 @@
 # isdefined(Base, :__precompile__) && __precompile__()
+using JuMP
+
 
 module Complementarity
 
 # package code goes here
-
+# importall JuMP
 using JuMP
 using Base.Meta
 

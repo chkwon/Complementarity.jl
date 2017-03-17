@@ -1,7 +1,8 @@
-using Complementarity, JuMP
+using Complementarity
 using Base.Test
 
 include("../examples/mcp/transmcp.jl")
+include("hhoeschle_mcp1.jl")
 
 
 #########################################################################
