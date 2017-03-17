@@ -328,16 +328,35 @@ macro complementarity(m, F, var)
   var = esc(var)
 
   quote
+
     if isa($F, JuMP.JuMPArray) || isa($F, Array)
       @assert length($F) == length($var)
     end
 
+    # when var is a single JuMP variable
     if isa($var, JuMP.Variable)
-      # when var is a single JuMP variable
-      add_complementarity($m, $var, $F, $F_base_name)
+      ex_var = parse(getname($var))
+      ex_F = parse($F_base_name)
 
+      if typeof(ex_var) == Symbol || typeof(ex_F) == Symbol
+        add_complementarity($m, $var, $F, $F_base_name)
+
+      elseif typeof(ex_var) == Expr && typeof(ex_F) == Expr
+        @assert ex_var.head == :ref
+        @assert ex_F.head == :ref
+
+        ex_F.args[2] = ex_var.args[2]
+        F_name = string(ex_F)
+
+        add_complementarity($m, $var, $F, F_name)
+
+      else
+        error("Error in @complementarity. Please file an issue with an example.")
+      end
+
+    # when var is a single dimensional Array of JuMP.Variable
     elseif isa($var, Array{JuMP.Variable, 1})
-      # when var is a single dimensional Array of JuMP.Variable
+
       idx_list = 1:length($var)
 
       for idx in idx_list

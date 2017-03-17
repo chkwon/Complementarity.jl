@@ -14,7 +14,7 @@
 # Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
 # Princeton University Press, Princeton, New Jersey, 1963.
 
-using Complementarity, JuMP
+using Complementarity
 
 plants = ["seattle", "san-diego"]
 markets = ["new-york", "chicago", "topeka"]
