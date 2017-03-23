@@ -231,10 +231,20 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
+
+    # setting initial_z
     initial_z = (lb+ub) / 2
     for i = 1:length(initial_z)
         if initial_z[i] == Inf
             initial_z[i] = lb[i]
+        end
+    end
+
+    # If the user has provided any initial_z, use it.
+    for i in 1:n
+        gv = JuMP._getValue(mcp_data[i].var)
+        if !isnan(gv)
+          initial_z[mcp_data[i].lin_idx] = gv
         end
     end
 
