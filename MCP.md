@@ -197,9 +197,10 @@ status =
 
 ## Example 3
 
-In the above Example 1, the only different part is to use `solver=:NLsolve`.
+We can specify `NLsolve` as the solver by providing `solver=:NLsolve` to `solveMCP()`.
 ```julia
-using Complementarity, JuMP
+using Complementarity
+
 m = MCPModel()
 
 lb = zeros(4)
@@ -207,42 +208,54 @@ ub = Inf*ones(4)
 items = 1:4
 @variable(m, lb[i] <= x[i in items] <= ub[i])
 
-@mapping(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
-@mapping(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
-@mapping(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
-@mapping(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
+@mapping(m, F1, 3*x[1]^2 + 2*x[1]*x[2] + 2*x[2]^2 + x[3] + 3*x[4] -6)
+@mapping(m, F2, 2*x[1]^2 + x[1] + x[2]^2 + 3*x[3] + 2*x[4] -2)
+@mapping(m, F3, 3*x[1]^2 + x[1]*x[2] + 2*x[2]^2 + 2*x[3] + 3*x[4] -1)
+@mapping(m, F4, x[1]^2 + 3*x[2]^2 + 2*x[3] + 3*x[4] - 3)
 
 @complementarity(m, F1, x[1])
 @complementarity(m, F2, x[2])
 @complementarity(m, F3, x[3])
 @complementarity(m, F4, x[4])
 
-status = solveMCP(m, solver=:NLsolve, method=:trust_region)
+setvalue(x[1], 1.25)
+setvalue(x[2], 0.)
+setvalue(x[3], 0.)
+setvalue(x[4], 0.5)
+
+status = solveMCP(m, solver=:NLsolve)
 @show status
 
 z = getvalue(x)
+Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+
 @show z
+@show Fz
 ```
+
+Note that initial values are provided using `setvalue()`.
 
 The result should look like
 ```julia
 status = Results of Nonlinear Solver Algorithm
  * Algorithm: Trust-region with dogleg and autoscaling
- * Starting Point: [0.0,0.0,0.0,0.0]
- * Zero: [1.2247448722522958,-7.67758278782679e-13,-9.147691538349567e-15,0.5000000002047756]
+ * Starting Point: [1.25,0.0,0.0,0.5]
+ * Zero: [1.22474,0.0,-2.02379e-19,0.5]
  * Inf-norm of residuals: 0.000000
- * Iterations: 132
+ * Iterations: 3
  * Convergence: true
    * |x - x'| < 0.0e+00: false
    * |f(x)| < 1.0e-08: true
- * Function Calls (f): 133
- * Jacobian Calls (df/dx): 60
+ * Function Calls (f): 4
+ * Jacobian Calls (df/dx): 4
 
- z = x: 1 dimensions:
- [1] = 1.2247448722522958
- [2] = -7.67758278782679e-13
- [3] = -9.147691538349567e-15
- [4] = 0.5000000002047756
+z = x: 1 dimensions:
+[1] = 1.2247448711263813
+[2] = 0.0
+[3] = -2.0237901522246342e-19
+[4] = 0.5000000002286319
+
+Fz = [-1.26298e-9,3.22474,5.0,3.62723e-11]
 ```
 
 You can access the output of NLsolve by the following fieldnames
@@ -265,7 +278,7 @@ julia> fieldnames(status)
 For example:
 ```julia
 julia> status.residual_norm
-6.9373147226770016e-9
+1.2629755019588629e-9
 
 julia> status.x_converged
 false
