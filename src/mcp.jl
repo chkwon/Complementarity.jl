@@ -186,8 +186,10 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
         d = JuMP.NLPEvaluator(m)
         MathProgBase.initialize(d, [:Grad])
-        # F_val = zeros(n)
-        MathProgBase.eval_g(d, fvec, z)
+        F_val = zeros(n)
+        MathProgBase.eval_g(d, F_val, z)
+
+        copy!(fvec, F_val)
 
         # F_val also should be in LindexIndex
         # since it is the order in which constraints are added
@@ -208,7 +210,8 @@ function _solve_nlsolve(m::Model; method=:trust_region)
         # since it is the order in which constraints are added
 
         sparse_fjac = sparse(I, J, jac_val)
-        fjac = full(sparse_fjac)
+        copy!(fjac, full(sparse_fjac))
+
         # return fjac
     end
 
@@ -228,10 +231,20 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
+
+    # setting initial_z
     initial_z = (lb+ub) / 2
     for i = 1:length(initial_z)
         if initial_z[i] == Inf
             initial_z[i] = lb[i]
+        end
+    end
+
+    # If the user has provided any initial_z, use it.
+    for i in 1:n
+        gv = JuMP._getValue(mcp_data[i].var)
+        if !isnan(gv)
+          initial_z[mcp_data[i].lin_idx] = gv
         end
     end
 
