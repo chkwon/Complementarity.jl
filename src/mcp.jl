@@ -10,7 +10,7 @@ end
 
 function MCPModel()
     m = Model()
-    m.ext[:MCP] = Array(ComplementarityType,0)
+    m.ext[:MCP] = Array{ComplementarityType}(0)
     return m
 end
 
