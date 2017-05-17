@@ -298,19 +298,24 @@ macro complements(args...)
 
     elseif xhaslb && xhasub
 
+        lowerbound_kw = Expr(:(=), esc(:lowerbound), 0)
+        if VERSION < v"0.6-"
+          lowerbound_kw = Expr(:kw, :lowerbound, 0)
+        end
+
         # Additional variables are defined
         # v defined
         push!(code.args,
               Expr(:(=), esc(:v) ,
                 Expr(:macrocall, Symbol("@variable"), m,
-                  Expr(:(=), esc(:lowerbound), 0)
+                  lowerbound_kw
                 ) ) )
 
         # w defined
         push!(code.args,
               Expr(:(=), esc(:w) ,
                 Expr(:macrocall, Symbol("@variable"), m,
-                  Expr(:(=), esc(:lowerbound), 0)
+                  lowerbound_kw
                 ) ) )
 
         # v - w = func
