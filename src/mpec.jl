@@ -303,14 +303,14 @@ macro complements(args...)
         push!(code.args,
               Expr(:(=), esc(:v) ,
                 Expr(:macrocall, Symbol("@variable"), m,
-                  Expr(:kw, :lowerbound,0)
+                  Expr(:(=), esc(:lowerbound), 0)
                 ) ) )
 
         # w defined
         push!(code.args,
               Expr(:(=), esc(:w) ,
                 Expr(:macrocall, Symbol("@variable"), m,
-                  Expr(:kw, :lowerbound,0)
+                  Expr(:(=), esc(:lowerbound), 0)
                 ) ) )
 
         # v - w = func
