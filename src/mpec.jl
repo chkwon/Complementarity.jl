@@ -299,7 +299,7 @@ macro complements(args...)
     elseif xhaslb && xhasub
 
         lowerbound_kw = Expr(:(=), esc(:lowerbound), 0)
-        if VERSION < v"0.6-"
+        if VERSION < v"0.6.0-dev.1934" # changed by julia PR #19868
           lowerbound_kw = Expr(:kw, :lowerbound, 0)
         end
 
