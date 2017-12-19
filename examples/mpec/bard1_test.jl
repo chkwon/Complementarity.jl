@@ -30,40 +30,44 @@ using Ipopt
 
 using Base.Test
 
-m = Model(solver=IpoptSolver())
-# m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
-@variable(m, x>=0)
-@variable(m, y>=0)
-@variable(m, l[1:3])
+@testset "bard1_test.jl" begin
 
-@NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
+    m = Model(solver=IpoptSolver())
+    # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
-# @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
-@NLconstraint(m, 2*(y-1) - 1.5*x + l[1] + l[2]*0.5 - l[3] == 0)
+    @variable(m, x>=0)
+    @variable(m, y>=0)
+    @variable(m, l[1:3])
 
-# Original Form
-# @complements(m, 0 <= 3*x - y - 3,        l[1] >= 0)
-# @complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0)
-# @complements(m, 0 <= - x - y + 7,        l[3] >= 0)
-@complements(m, 0 >= - 3*x + y + 3,        l[1] >= 0, smooth)
-@complements(m, 0 <= - x + 0.5*y + 4,      l[2] <= 0, simple)
-@complements(m, 0 >= + x + y - 7,          l[3] <= 0, smooth)
+    @NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
 
-# just testing
-macroexpand(:@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
-macroexpand(:@complements(m, 0<= 3*x - y - 3 <=10,  l[1]))
-macroexpand(:@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
-macroexpand(:@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
+    # @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
+    @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] + l[2]*0.5 - l[3] == 0)
 
-# Errors
-macroexpand(:@complements(m, 10 <= 3*x - y - 3 >= 5,  l[1]))
-macroexpand(:@complements(m, 10 <= 3*x - y - 3,  l[1]))
-macroexpand(:@complements(m, 3*x - y - 3 >= 0,  l[1]))
+    # Original Form
+    # @complements(m, 0 <= 3*x - y - 3,        l[1] >= 0)
+    # @complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0)
+    # @complements(m, 0 <= - x - y + 7,        l[3] >= 0)
+    @complements(m, 0 >= - 3*x + y + 3,        l[1] >= 0, smooth)
+    @complements(m, 0 <= - x + 0.5*y + 4,      l[2] <= 0, simple)
+    @complements(m, 0 >= + x + y - 7,          l[3] <= 0, smooth)
 
-solve(m)
-@show getvalue(x)
-@show getvalue(y)
-@show getvalue(l)
-@show getobjectivevalue(m)
-@test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+    # just testing
+    macroexpand(:@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
+    macroexpand(:@complements(m, 0<= 3*x - y - 3 <=10,  l[1]))
+    macroexpand(:@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
+    macroexpand(:@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
+
+    # Errors
+    macroexpand(:@complements(m, 10 <= 3*x - y - 3 >= 5,  l[1]))
+    macroexpand(:@complements(m, 10 <= 3*x - y - 3,  l[1]))
+    macroexpand(:@complements(m, 3*x - y - 3 >= 0,  l[1]))
+
+    solve(m)
+    @show getvalue(x)
+    @show getvalue(y)
+    @show getvalue(l)
+    @show getobjectivevalue(m)
+    @test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+end

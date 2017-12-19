@@ -79,27 +79,32 @@ g = 1.7
 
 using JuMP, Complementarity
 using Ipopt
+using Base.Test
 
-gg = 5000^(1/g)
 
-m = Model(solver=IpoptSolver())
+@testset "gnash1m.jl" begin
 
-@variable(m, 0 <= x <= L)
-@variable(m, y[1:4])
-@variable(m, l[1:4])
-@variable(m, Q >= 0)
-@constraint(m, Q == x+y[1]+y[2]+y[3]+y[4])
-@NLobjective(m, Min, c[1]*x + b[1]/(b[1]+1)*K[1]^(-1/b[1])*x^((1+b[1])/b[1])
- 		             - x*( gg*Q^(-1/g) ) )
+    gg = 5000^(1/g)
 
-@NLconstraint(m, cnstr[i=1:4], 0 == ( c[i+1] + K[i+1]^(-1/b[i+1])*y[i] ) - ( gg*Q^(-1/g) )
-                                  - y[i]*( -1/g*gg*Q^(-1-1/g) ) - l[i] )
+    m = Model(solver=IpoptSolver())
 
-for i in 1:4
-    @complements(m, l[i], 0 <= y[i] <= L, smooth)
+    @variable(m, 0 <= x <= L)
+    @variable(m, y[1:4])
+    @variable(m, l[1:4])
+    @variable(m, Q >= 0)
+    @constraint(m, Q == x+y[1]+y[2]+y[3]+y[4])
+    @NLobjective(m, Min, c[1]*x + b[1]/(b[1]+1)*K[1]^(-1/b[1])*x^((1+b[1])/b[1])
+     		             - x*( gg*Q^(-1/g) ) )
+
+    @NLconstraint(m, cnstr[i=1:4], 0 == ( c[i+1] + K[i+1]^(-1/b[i+1])*y[i] ) - ( gg*Q^(-1/g) )
+                                      - y[i]*( -1/g*gg*Q^(-1-1/g) ) - l[i] )
+
+    for i in 1:4
+        @complements(m, l[i], 0 <= y[i] <= L, smooth)
+    end
+
+    solve(m)
+
+    @show getobjectivevalue(m)
+    @test isapprox(getobjectivevalue(m), -6.11671, atol=1e-4)
 end
-
-solve(m)
-
-@show getobjectivevalue(m)
-@assert isapprox(getobjectivevalue(m), -6.11671, atol=1e-4)

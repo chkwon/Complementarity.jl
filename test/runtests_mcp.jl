@@ -3,149 +3,151 @@ using Base.Test
 
 info("-------[Testing Complementarity/PATHSolver]------------------------------------------")
 
-#########################################################################
-m = MCPModel()
+@testset "mcp test 1 with PATHSolver" begin
 
-@variable(m, x3 >= 0)
-@variable(m, x4 >= 0)
-@variable(m, x1 >= 0)
-@variable(m, x2 >= 0)
+    m = MCPModel()
 
-@mapping(m, F2, x3-2x4 +2)
-@mapping(m, F3, x1-x2+2x3-2x4 -2)
-@mapping(m, F4, x1+2x2-2x3+4x4 -6)
-@mapping(m, F1, -x3-x4 +2)
+    @variable(m, x3 >= 0)
+    @variable(m, x4 >= 0)
+    @variable(m, x1 >= 0)
+    @variable(m, x2 >= 0)
 
-@complementarity(m, F4, x4)
-@complementarity(m, F1, x1)
-@complementarity(m, F3, x3)
-@complementarity(m, F2, x2)
+    @mapping(m, F2, x3-2x4 +2)
+    @mapping(m, F3, x1-x2+2x3-2x4 -2)
+    @mapping(m, F4, x1+2x2-2x3+4x4 -6)
+    @mapping(m, F1, -x3-x4 +2)
 
-
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-status = solveMCP(m)
-
-z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
-Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
-@show z
-@show Fz
-
-@test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+    @complementarity(m, F4, x4)
+    @complementarity(m, F1, x1)
+    @complementarity(m, F3, x3)
+    @complementarity(m, F2, x2)
 
 
-#########################################################################
+    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+    status = solveMCP(m)
 
+    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
+    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    @show z
+    @show Fz
 
-println("------------------------------------------------------------------")
-
-
-#########################################################################
-m = MCPModel()
-
-@variable(m, x3 >= 0)
-@variable(m, x4 >= 0)
-@variable(m, x1 >= 0)
-@variable(m, x2 >= 0)
-
-@mapping(m, F2, x3-2x4 +2)
-@mapping(m, F3, x1-x2+2x3-2x4 -2)
-@mapping(m, F4, x1+2x2-2x3+4x4 -6)
-@mapping(m, F1, -x3-x4 +2)
-
-@complementarity(m, F2, x2)
-@complementarity(m, F3, x3)
-@complementarity(m, F1, x1)
-@complementarity(m, F4, x4)
-
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-
-status = solveMCP(m)
-
-z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
-Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
-@show z
-@show Fz
-
-@test isapprox(z, [2.8, 0.0, 0.8, 1.2])
-#########################################################################
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+end
 
 
 println("------------------------------------------------------------------")
 
 
-#########################################################################
-m = MCPModel()
+@testset "mcp test 2 with PATHSolver" begin
 
-M = [0  0 -1 -1 ;
-     0  0  1 -2 ;
-     1 -1  2 -2 ;
-     1  2 -2  4 ]
+    m = MCPModel()
 
-q = [2; 2; -2; -6]
+    @variable(m, x3 >= 0)
+    @variable(m, x4 >= 0)
+    @variable(m, x1 >= 0)
+    @variable(m, x2 >= 0)
 
-lb = zeros(4)
-ub = Inf*ones(4)
+    @mapping(m, F2, x3-2x4 +2)
+    @mapping(m, F3, x1-x2+2x3-2x4 -2)
+    @mapping(m, F4, x1+2x2-2x3+4x4 -6)
+    @mapping(m, F1, -x3-x4 +2)
 
-@variable(m, lb[i] <= myvariablename[i in 1:4] <= ub[i])
-@mapping(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
-@complementarity(m, myconst, myvariablename)
+    @complementarity(m, F2, x2)
+    @complementarity(m, F3, x3)
+    @complementarity(m, F1, x1)
+    @complementarity(m, F4, x4)
 
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
+    status = solveMCP(m)
 
-status = solveMCP(m)
+    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
+    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    @show z
+    @show Fz
 
-z = getvalue(myvariablename)
-Fz = getvalue(myconst)
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+end
 
-@show z
-@show Fz
-
-@test isapprox(z[1], 2.8)
-@test isapprox(z[2], 0.0)
-@test isapprox(z[3], 0.8)
-@test isapprox(z[4], 1.2)
-#########################################################################
 
 println("------------------------------------------------------------------")
 
 
-#########################################################################
-m = MCPModel()
+@testset "mcp test 3 with PATHSolver" begin
 
-M = [0  0 -1 -1 ;
-     0  0  1 -2 ;
-     1 -1  2 -2 ;
-     1  2 -2  4 ]
+    m = MCPModel()
 
-q = [2; 2; -2; -6]
+    M = [0  0 -1 -1 ;
+         0  0  1 -2 ;
+         1 -1  2 -2 ;
+         1  2 -2  4 ]
 
-lb = zeros(4)
-ub = Inf*ones(4)
+    q = [2; 2; -2; -6]
 
-items = 1:4
+    lb = zeros(4)
+    ub = Inf*ones(4)
 
-@variable(m, lb[i] <= x[i in items] <= ub[i])
-# @variable(m, x[i in items] >= 0)
-@mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
-@complementarity(m, F, x)
+    @variable(m, lb[i] <= myvariablename[i in 1:4] <= ub[i])
+    @mapping(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
+    @complementarity(m, myconst, myvariablename)
 
-PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
+    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
 
-status = solveMCP(m)
+    status = solveMCP(m)
 
-z = getvalue(x)
-# Fz = getvalue(F) # currently produces an error
+    z = getvalue(myvariablename)
+    Fz = getvalue(myconst)
 
-@show z
-# @show Fz
+    @show z
+    @show Fz
 
-@test isapprox(z[1], 2.8)
-@test isapprox(z[2], 0.0)
-@test isapprox(z[3], 0.8)
-@test isapprox(z[4], 1.2)
-#########################################################################
+    @test isapprox(z[1], 2.8)
+    @test isapprox(z[2], 0.0)
+    @test isapprox(z[3], 0.8)
+    @test isapprox(z[4], 1.2)
+end
+
+println("------------------------------------------------------------------")
+
+
+@testset "mcp test 4 with PATHSolver" begin
+
+    m = MCPModel()
+
+    M = [0  0 -1 -1 ;
+         0  0  1 -2 ;
+         1 -1  2 -2 ;
+         1  2 -2  4 ]
+
+    q = [2; 2; -2; -6]
+
+    lb = zeros(4)
+    ub = Inf*ones(4)
+
+    items = 1:4
+
+    @variable(m, lb[i] <= x[i in items] <= ub[i])
+    # @variable(m, x[i in items] >= 0)
+    @mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
+    @complementarity(m, F, x)
+
+    PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
+
+
+    status = solveMCP(m)
+
+    z = getvalue(x)
+    # Fz = getvalue(F) # currently produces an error
+
+    @show z
+    # @show Fz
+
+    @test isapprox(z[1], 2.8)
+    @test isapprox(z[2], 0.0)
+    @test isapprox(z[3], 0.8)
+    @test isapprox(z[4], 1.2)
+end
 
 
 println("------------------------------------------------------------------")

@@ -30,22 +30,25 @@ using Ipopt
 
 using Base.Test
 
-m = Model(solver=IpoptSolver())
-# m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
-@variable(m, x>=0)
-@variable(m, y>=0)
-@variable(m, l[1:3])
+@testset "bard1.jl" begin
+    m = Model(solver=IpoptSolver())
+    # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
-@NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
+    @variable(m, x>=0)
+    @variable(m, y>=0)
+    @variable(m, l[1:3])
 
-@NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
+    @NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
 
-@complements(m, 0 <= 3*x - y - 3,        l[1] >= 0, smooth)
-@complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
-@complements(m, 0 <= - x - y + 7,        l[3] >= 0, simple)
+    @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
 
-solve(m)
+    @complements(m, 0 <= 3*x - y - 3,        l[1] >= 0, smooth)
+    @complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
+    @complements(m, 0 <= - x - y + 7,        l[3] >= 0, simple)
 
-@show getobjectivevalue(m)
-@test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+    solve(m)
+
+    @show getobjectivevalue(m)
+    @test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+end

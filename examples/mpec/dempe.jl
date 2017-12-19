@@ -35,25 +35,35 @@
 
 using JuMP, Complementarity
 using Ipopt
+using Base.Test
 
-m = Model(solver=IpoptSolver())
+@testset "dempe.jl" begin
+
+    m = Model(solver=IpoptSolver())
 
 
-@variable(m, x)
-@variable(m, z)
-@variable(m, w>=0)
+    @variable(m, x)
+    @variable(m, z)
+    @variable(m, w>=0)
 
-@NLobjective(m, Min, (x - 3.5)^2 + (z + 4)^2)
+    @NLobjective(m, Min, (x - 3.5)^2 + (z + 4)^2)
 
-@NLconstraint(m, z - 3 + 2*z*w == 0)
+    @NLconstraint(m, z - 3 + 2*z*w == 0)
 
-@complements(m, 0 >= z^2 - x,  w >= 0, simple)
+    @complements(m, 0 >= z^2 - x,  w >= 0, simple)
 
-# setvalue(x, 50)
-# setvalue(z, 50)
-# setvalue(w, 1e5)
+    # Initial solutions to help reaching the optimality
+    setvalue(x, 50)
+    setvalue(z, 50)
+    setvalue(w, 1e5)
 
-solve(m)
+    solve(m)
 
-@show getobjectivevalue(m)
-@assert isapprox(getobjectivevalue(m), 28.25, atol=1e-4)
+    @show getobjectivevalue(m)
+    @test isapprox(getobjectivevalue(m), 28.25, atol=1e-4)
+
+    xx = getvalue(x)
+    zz = getvalue(z)
+    ww = getvalue(w)
+    @test isapprox(zz - 3 + 2*zz*ww, 0, atol=1e-4)
+end
