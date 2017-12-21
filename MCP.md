@@ -95,6 +95,16 @@ solveMCP(m)
 This solves the MCP and stores the solution inside `m`, which can be accessed by `getvalue(x)` as in JuMP.
 
 
+## Linear Complementarity Problems
+
+When your problem is an LCP, then you can specify it. All functions defined by `@mapping` must be linear.
+```julia
+solveMCP(m, linear=:yes)
+```
+This prevents PATHSolver from evaluating the Jacobian matrix at every iteration.
+
+
+
 ## Example 2
 
 This is a translation of [`transmcp.gms`](http://www.gams.com/modlib/libhtml/transmcp.htm) originally written in GAMS.
