@@ -3,7 +3,7 @@ using Base.Test
 
 info("-------[Testing Complementarity/PATHSolver]------------------------------------------")
 
-@testset "mcp test 1 with PATHSolver" begin
+@testset "LCP test 1 with PATHSolver" begin
 
     m = MCPModel()
 
@@ -24,7 +24,7 @@ info("-------[Testing Complementarity/PATHSolver]-------------------------------
 
 
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-    status = solveMCP(m)
+    status = solveMCP(m, linear=:yes)
 
     z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
     Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
@@ -38,7 +38,7 @@ end
 println("------------------------------------------------------------------")
 
 
-@testset "mcp test 2 with PATHSolver" begin
+@testset "LCP test 2 with PATHSolver" begin
 
     m = MCPModel()
 
@@ -59,7 +59,7 @@ println("------------------------------------------------------------------")
 
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
-    status = solveMCP(m)
+    status = solveLCP(m)
 
     z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
     Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
@@ -73,7 +73,7 @@ end
 println("------------------------------------------------------------------")
 
 
-@testset "mcp test 3 with PATHSolver" begin
+@testset "LCP test 3 with PATHSolver" begin
 
     m = MCPModel()
 
@@ -94,7 +94,7 @@ println("------------------------------------------------------------------")
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
 
-    status = solveMCP(m)
+    status = solveMCP(m, linear=:yes)
 
     z = getvalue(myvariablename)
     Fz = getvalue(myconst)
@@ -111,7 +111,7 @@ end
 println("------------------------------------------------------------------")
 
 
-@testset "mcp test 4 with PATHSolver" begin
+@testset "LCP test 4 with PATHSolver" begin
 
     m = MCPModel()
 
@@ -135,7 +135,7 @@ println("------------------------------------------------------------------")
     PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
 
 
-    status = solveMCP(m)
+    status = solveMCP(m, linear=:yes)
 
     z = getvalue(x)
     # Fz = getvalue(F) # currently produces an error
@@ -152,7 +152,7 @@ end
 
 println("------------------------------------------------------------------")
 
-@testset "mcp test 5 with PATHSolver" begin
+@testset "LCP error test 5 with PATHSolver" begin
 
     m = nothing
     m = MCPModel()
@@ -177,19 +177,8 @@ println("------------------------------------------------------------------")
     setvalue(x[3], 0.)
     setvalue(x[4], 0.5)
 
-    status = solveMCP(m)
-    @show status
+    @test_throws ErrorException solveMCP(m, linear=:yes)
 
-    z = getvalue(x)
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
-
-    @show z
-    @show Fz
-
-    @test isapprox(z[1], 1.22474, atol=1e-4)
-    @test isapprox(z[2], 0.0, atol=1e-4)
-    @test isapprox(z[3], 0.0, atol=1e-4)
-    @test isapprox(z[4], 0.5, atol=1e-4)
 end
 
 
