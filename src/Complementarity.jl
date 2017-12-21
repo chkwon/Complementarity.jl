@@ -12,7 +12,7 @@ using Base.Meta
 import PATHSolver, MathProgBase, NLsolve
 
 export  MCPModel, MCPData, ComplementarityType,
-        complements, solveMCP,
+        complements, solveMCP, solveLCP,
         @complementarity, @complements, @mapping
 
 mpec_tol = 1e-8
