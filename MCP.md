@@ -99,7 +99,7 @@ This solves the MCP and stores the solution inside `m`, which can be accessed by
 
 When your problem is an LCP, then you can specify it. All functions defined by `@mapping` must be linear.
 ```julia
-solveMCP(m, linear=:yes)
+solveMCP(m, linear=true)
 ```
 This prevents PATHSolver from evaluating the Jacobian matrix at every iteration.
 

@@ -94,7 +94,7 @@ end
 
 
 # Placeholder for multiple methods in the future
-function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=:no)
+function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
     if solver == :PATH
         return _solve_path(m, linear=linear)
     elseif solver == :NLsolve
@@ -103,7 +103,7 @@ function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=:no)
 end
 
 function solveLCP(m::Model; solver=:PATH, method=:trust_region)
-    solveMCP(m, solver=solver, method=method, linear=:yes)
+    solveMCP(m, solver=solver, method=method, linear=true)
 end
 
 function sortMCPDataperm(obj::Array{ComplementarityType,1})
@@ -117,7 +117,7 @@ function sortMCPDataperm(obj::Array{ComplementarityType,1})
 end
 
 # Using PATHSolver
-function _solve_path(m::Model; linear=:no)
+function _solve_path(m::Model; linear=false)
 
     function myfunc(z)
         # z is in LindexIndex, passed from PATHSolver
@@ -170,13 +170,13 @@ function _solve_path(m::Model; linear=:no)
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
-    if linear==:yes
+    if linear==true
         J0 = myjac(zeros(size(lb)))
         J1 = myjac(ones(size(ub)))
         Jr = myjac(rand(size(ub)))
 
         if norm(J0-J1, 1) > 10e-8 || norm(J1-Jr, 1) > 10e-8
-            error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=:yes'.")
+            error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
         end
 
         status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, var_name, F_name)

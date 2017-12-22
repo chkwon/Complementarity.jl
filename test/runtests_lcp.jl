@@ -24,7 +24,7 @@ info("-------[Testing Complementarity/PATHSolver]-------------------------------
 
 
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-    status = solveMCP(m, linear=:yes)
+    status = solveMCP(m, linear=true)
 
     z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
     Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
@@ -94,7 +94,7 @@ println("------------------------------------------------------------------")
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
 
-    status = solveMCP(m, linear=:yes)
+    status = solveMCP(m, linear=true)
 
     z = getvalue(myvariablename)
     Fz = getvalue(myconst)
@@ -135,7 +135,7 @@ println("------------------------------------------------------------------")
     PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
 
 
-    status = solveMCP(m, linear=:yes)
+    status = solveMCP(m, linear=true)
 
     z = getvalue(x)
     # Fz = getvalue(F) # currently produces an error
@@ -177,7 +177,7 @@ println("------------------------------------------------------------------")
     setvalue(x[3], 0.)
     setvalue(x[4], 0.5)
 
-    @test_throws ErrorException solveMCP(m, linear=:yes)
+    @test_throws ErrorException solveMCP(m, linear=true)
 
 end
 
