@@ -172,14 +172,14 @@ function _solve_path(m::Model; linear=false)
     # ALL inputs to PATHSolver must be in LinearIndex
     if linear==true
         J0 = myjac(zeros(size(lb)))
-        J1 = myjac(ones(size(ub)))
-        Jr = myjac(rand(size(ub)))
+        Jr = myjac(100*rand(size(ub)))
 
-        if norm(J0-J1, 1) > 10e-8 || norm(J1-Jr, 1) > 10e-8
+        if norm(J0-Jr, 1) > 10e-8
             error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
         end
 
         status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, var_name, F_name)
+
     else
         status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, var_name, F_name)
     end
