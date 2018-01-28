@@ -198,7 +198,7 @@ end
 
 function _solve_nlsolve(m::Model; method=:trust_region)
 
-    function myfunc!(z, fvec)
+    function myfunc!(fvec, z)
         # z is in LindexIndex, passed from PATHSolver
 
         d = JuMP.NLPEvaluator(m)
@@ -210,11 +210,9 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
         # F_val also should be in LindexIndex
         # since it is the order in which constraints are added
-
-        # return fvec
     end
 
-    function myjac!(z, fjac)
+    function myjac!(fjac, z)
         # z is in LindexIndex, passed from PATHSolver
 
         d = JuMP.NLPEvaluator(m)
@@ -228,8 +226,6 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
         sparse_fjac = sparse(I, J, jac_val)
         copy!(fjac, full(sparse_fjac))
-
-        # return fjac
     end
 
     mcp_data = getMCPData(m)
@@ -265,17 +261,16 @@ function _solve_nlsolve(m::Model; method=:trust_region)
         end
     end
 
-    # Solve the MCP using PATHSolver
-    # ALL inputs to PATHSolver must be in LinearIndex
-    # status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub)
+    # Solve the MCP using NLsolve
+    # ALL inputs to NLsolve must be in LinearIndex
 
     r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_z, method = method,
         iterations = 10_000)
-    # function mcpsolve{T}(f!::Function,
-    #                   g!::Function,
+    # function mcpsolve{T}(f,
+    #                   j,
     #                   lower::Vector,
     #                   upper::Vector,
-    #                   initial_x::Vector{T};
+    #                   initial_x::AbstractArray{T};
     #                   method::Symbol = :trust_region,
     #                   reformulation::Symbol = :smooth,
     #                   xtol::Real = zero(T),
@@ -284,10 +279,10 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     #                   store_trace::Bool = false,
     #                   show_trace::Bool = false,
     #                   extended_trace::Bool = false,
-    #                   linesearch!::Function = Optim.backtracking_linesearch!,
+    #                   linesearch = LineSearches.BackTracking(),
     #                   factor::Real = one(T),
-    #                   autoscale::Bool = true)
-
+    #                   autoscale = true,
+    #                   inplace = true)
 
     # julia> fieldnames(r)
     # 12-element Array{Symbol,1}:

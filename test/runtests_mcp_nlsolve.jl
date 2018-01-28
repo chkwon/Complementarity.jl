@@ -4,6 +4,45 @@ using Base.Test
 
 info("-------[Testing Complementarity/NLsolve]------------------------------------------")
 
+@testset "mcp test 0 with NLsolve example" begin
+
+    lb = [0., 0., 0., 0.]
+    ub = [Inf, Inf, Inf, Inf]
+    x0 = [1.25, 0., 0., 0.5]
+
+    m = nothing
+    m = MCPModel()
+
+    @variable(m, x[1:4] >= 0)
+    @mapping(m, F1, 3*x[1]^2+2*x[1]*x[2]+2*x[2]^2+x[3]+3*x[4]-6)
+    @mapping(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
+    @mapping(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
+    @mapping(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
+    @complementarity(m, [F1 F2 F3 F4], x)
+
+    setvalue(x, x0)
+
+    status = solveMCP(m, solver=:NLsolve)
+    @show status
+
+    z = getvalue(x)
+    Fz = [getvalue(F1) getvalue(F2) getvalue(F3) getvalue(F4)]
+
+    @show z
+    @show Fz
+
+    @test isapprox(z[1], 1.22474, atol=1e-4)
+    @test isapprox(z[2], 0.0, atol=1e-4)
+    @test isapprox(z[3], -1.378e-19, atol=1e-4)
+    @test isapprox(z[4], 0.5, atol=1e-4)
+
+    @test isapprox(Fz[1], -1.26298e-9, atol=1e-4)
+    @test isapprox(Fz[2], 3.22474, atol=1e-4)
+    @test isapprox(Fz[3], 5.0, atol=1e-4)
+    @test isapprox(Fz[4], 3.62723e-11, atol=1e-4)
+end
+
+println("------------------------------------------------------------------")
 
 @testset "mcp test 1 with NLsolve" begin
     m = nothing
