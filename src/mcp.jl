@@ -23,52 +23,6 @@ function getMCPData(m::Model)
 end
 
 
-
-# The most basic one.
-function complements(m::Model, F::JuMP.NonlinearExpression, var::JuMP.Variable)
-    Base.depwarn("complements is deprecated. Use @complementarity instead.", :complements)
-    lb = getlowerbound(var)
-    ub = getupperbound(var)
-    var_name = getname(var)
-    F_name = ""
-    new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name, F_name)
-    mcp_data = getMCPData(m)
-    push!(mcp_data, new_dimension)
-end
-function complements(m::Model, var::JuMP.Variable, F::JuMP.NonlinearExpression)
-    complements(m, F, var)
-end
-
-
-
-function complements(m::Model, F::Array{JuMP.NonlinearExpression}, var::Array{JuMP.Variable})
-    vars = collect(var)
-    Fs = collect(F)
-
-    @assert length(vars) == length(Fs)
-
-    for i in 1:length(vars)
-        complements(m, Fs[i], vars[i])
-    end
-end
-function complements(m::Model, var::Array{JuMP.Variable}, F::Array{JuMP.NonlinearExpression}, )
-    complements(m::Model, F, var)
-end
-
-function complements(m::Model,  arr1::JuMP.JuMPArray, arr2::JuMP.JuMPArray)
-    arr1s = collect(arr1.innerArray)
-    arr2s = collect(arr2.innerArray)
-
-    @assert length(arr1s) == length(arr2s)
-
-    for i in 1:length(arr1s)
-        complements(m, arr1s[i], arr2s[i])
-    end
-end
-
-
-
-
 function getBoundsLinearIndex(mcp_data)
     n = length(mcp_data)
     lb = zeros(n)
