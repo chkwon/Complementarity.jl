@@ -114,7 +114,7 @@ function _solve_path(m::Model; linear=false)
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
     p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
+    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
@@ -144,6 +144,13 @@ function _solve_path(m::Model; linear=false)
     for i in 1:n
         setvalue(mcp_data[i].var, z[mcp_data[i].lin_idx])
     end
+
+
+
+    # Cleanup. Remove all dummy @NLconstraints added,
+    # so that the model can be re-used for multiple runs
+    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(0)
+
 
     # This function has changed the content of m already.
     return status
@@ -194,7 +201,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
     p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, dummy[i=1:n], mcp_data[p[i]].F == 0)
+    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
@@ -260,6 +267,13 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     for i in 1:n
         setvalue(mcp_data[i].var, r.zero[mcp_data[i].lin_idx])
     end
+
+
+    # Cleanup. Remove all dummy @NLconstraints added,
+    # so that the model can be re-used for multiple runs
+    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(0)
+
+
 
     # This function has changed the content of m already.
     return r

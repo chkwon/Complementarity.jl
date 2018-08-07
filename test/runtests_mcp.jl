@@ -32,6 +32,16 @@ info("-------[Testing Complementarity/PATHSolver]-------------------------------
     @show Fz
 
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+
+    status = solveMCP(m)
+
+    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
+    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    @show z
+    @show Fz
+
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+    
 end
 
 
