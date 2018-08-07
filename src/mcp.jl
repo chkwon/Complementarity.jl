@@ -46,6 +46,22 @@ function getNamesLinearIndex(mcp_data)
     return var_name, F_name
 end
 
+function getInitialValuesLinearIndex(m, mcp_data)
+    n = length(mcp_data)
+    initial_values = Array{Float64}(n)
+    for i in 1:n
+
+        # init_val = getvalue(mcp_data[i].var) # This throws a warning when it is not set.
+        init_val = m.colVal[linearindex(mcp_data[i].var)]
+        if isnan(init_val)
+            # When an initial value is not provided by 'setvalue(x, 1.0)'
+            # it is set to the lower bound
+            init_val = mcp_data[i].lb
+        end
+        initial_values[linearindex(mcp_data[i].var)] = init_val
+    end
+    return initial_values
+end
 
 # Placeholder for multiple methods in the future
 function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
@@ -122,6 +138,9 @@ function _solve_path(m::Model; linear=false)
     # var_name, F_name in LinearIndex
     var_name, F_name = getNamesLinearIndex(mcp_data)
 
+    # initial values
+    initial_values = getInitialValuesLinearIndex(m, mcp_data)
+
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in LinearIndex
     if linear==true
@@ -131,11 +150,9 @@ function _solve_path(m::Model; linear=false)
         if norm(J0-Jr, 1) > 10e-8
             error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
         end
-
-        status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, var_name, F_name)
-
+        status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
     else
-        status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, var_name, F_name)
+        status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
     end
 
     # z, f are in LinearIndex
