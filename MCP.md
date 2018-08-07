@@ -187,6 +187,31 @@ getvalue(p) = p: 1 dimensions:
 status = :Solved
 ```
 
+## Warmstart
+
+When you need warmstart, you can do either:
+
+```
+x_start = Dict(
+    ("seattle","new-york")=>50,
+    ("seattle","chicago")=>200,
+    ("seattle","topeka")=>0,
+    ("san-diego","new-york")=>275,
+    ("san-diego","chicago")=>0,
+    ("san-diego","topeka")=>275,
+    )
+@variable(m, x[i in plants, j in markets] >= 0, start=x_start[(i,j)])
+```
+
+or
+
+```
+@variable(m, x[i in plants, j in markets] >= 0)
+setvalue(x["seattle", "chicago"], 200)
+```
+
+
+
 ## Status Symbols
 ```julia
 status =
