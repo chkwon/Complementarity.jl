@@ -57,4 +57,7 @@ using Complementarity
 
     stat = solveMCP(model)
 
+    stat = solveMCP(model) # solve twice to see if model is reusable
+
+    stat = solveMCP(model) # solve three times to see if model is reusable
 end

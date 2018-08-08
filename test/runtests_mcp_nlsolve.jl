@@ -40,6 +40,51 @@ info("-------[Testing Complementarity/NLsolve]----------------------------------
     @test isapprox(Fz[2], 3.22474, atol=1e-4)
     @test isapprox(Fz[3], 5.0, atol=1e-4)
     @test isapprox(Fz[4], 3.62723e-11, atol=1e-4)
+
+
+
+    setvalue(x, x0)
+    status = solveMCP(m, solver=:PATH)
+    @show status
+
+    z = getvalue(x)
+    Fz = [getvalue(F1) getvalue(F2) getvalue(F3) getvalue(F4)]
+
+    @show z
+    @show Fz
+
+    @test isapprox(z[1], 1.22474, atol=1e-4)
+    @test isapprox(z[2], 0.0, atol=1e-4)
+    @test isapprox(z[3], -1.378e-19, atol=1e-4)
+    @test isapprox(z[4], 0.5, atol=1e-4)
+
+    @test isapprox(Fz[1], -1.26298e-9, atol=1e-4)
+    @test isapprox(Fz[2], 3.22474, atol=1e-4)
+    @test isapprox(Fz[3], 5.0, atol=1e-4)
+    @test isapprox(Fz[4], 3.62723e-11, atol=1e-4)
+
+
+    setvalue(x, x0)
+    status = solveMCP(m, solver=:NLsolve)
+    @show status
+
+    z = getvalue(x)
+    Fz = [getvalue(F1) getvalue(F2) getvalue(F3) getvalue(F4)]
+
+    @show z
+    @show Fz
+
+    @test isapprox(z[1], 1.22474, atol=1e-4)
+    @test isapprox(z[2], 0.0, atol=1e-4)
+    @test isapprox(z[3], -1.378e-19, atol=1e-4)
+    @test isapprox(z[4], 0.5, atol=1e-4)
+
+    @test isapprox(Fz[1], -1.26298e-9, atol=1e-4)
+    @test isapprox(Fz[2], 3.22474, atol=1e-4)
+    @test isapprox(Fz[3], 5.0, atol=1e-4)
+    @test isapprox(Fz[4], 3.62723e-11, atol=1e-4)
+
+
 end
 
 println("------------------------------------------------------------------")
