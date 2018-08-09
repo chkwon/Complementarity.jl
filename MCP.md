@@ -191,7 +191,7 @@ status = :Solved
 
 When you need warmstart, you can do either:
 
-```
+```julia
 x_start = Dict(
     ("seattle","new-york")=>50,
     ("seattle","chicago")=>200,
@@ -205,7 +205,7 @@ x_start = Dict(
 
 or
 
-```
+```julia
 @variable(m, x[i in plants, j in markets] >= 0)
 setvalue(x["seattle", "chicago"], 200)
 ```
