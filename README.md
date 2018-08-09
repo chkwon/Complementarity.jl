@@ -1,8 +1,8 @@
 # Complementarity.jl
 
-[![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.4.svg)](http://pkg.julialang.org/?pkg=Complementarity)
 [![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.5.svg)](http://pkg.julialang.org/?pkg=Complementarity)
 [![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.6.svg)](http://pkg.julialang.org/?pkg=Complementarity)
+[![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.7.svg)](http://pkg.julialang.org/?pkg=Complementarity)
 
 
 [![Build Status](https://travis-ci.org/chkwon/Complementarity.jl.svg?branch=master)](https://travis-ci.org/chkwon/Complementarity.jl)
