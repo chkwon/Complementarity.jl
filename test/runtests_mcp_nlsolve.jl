@@ -241,4 +241,49 @@ println("------------------------------------------------------------------")
     @test isapprox(z[2], 0.0, atol=1e-4)
     @test isapprox(z[3], 0.0, atol=1e-4)
     @test isapprox(z[4], 0.5, atol=1e-4)
+
+
+
+
+    setvalue(x[1], 1.19)
+    setvalue(x[2], 0.2)
+    setvalue(x[3], 0.1)
+    setvalue(x[4], 0.49)
+
+    status = solveMCP(m, solver=:PATH)
+    @show status
+
+    z = getvalue(x)
+    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+
+    @show z
+    @show Fz
+
+    @test isapprox(z[1], 1.22474, atol=1e-4)
+    @test isapprox(z[2], 0.0, atol=1e-4)
+    @test isapprox(z[3], 0.0, atol=1e-4)
+    @test isapprox(z[4], 0.5, atol=1e-4)
+
+
+
+
+
+    setvalue(x[1], 1.40)
+    setvalue(x[2], 0.1)
+    setvalue(x[3], 0.2)
+    setvalue(x[4], 0.43)
+
+    status = solveMCP(m, solver=:NLsolve)
+    @show status
+
+    z = getvalue(x)
+    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+
+    @show z
+    @show Fz
+
+    @test isapprox(z[1], 1.22474, atol=1e-4)
+    @test isapprox(z[2], 0.0, atol=1e-4)
+    @test isapprox(z[3], 0.0, atol=1e-4)
+    @test isapprox(z[4], 0.5, atol=1e-4)
 end
