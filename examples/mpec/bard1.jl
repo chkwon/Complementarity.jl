@@ -28,10 +28,10 @@ using JuMP, Complementarity
 using Ipopt
 # using NLopt
 
-using Base.Test
+using Test
 
 
-@testset "bard1.jl" begin
+# @testset "bard1.jl" begin
     m = Model(solver=IpoptSolver())
     # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
@@ -51,4 +51,4 @@ using Base.Test
 
     @show getobjectivevalue(m)
     @test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
-end
+# end

@@ -28,7 +28,7 @@ using JuMP, Complementarity
 using Ipopt
 # using NLopt
 
-using Base.Test
+using Test
 
 
 @testset "bard1_test.jl" begin

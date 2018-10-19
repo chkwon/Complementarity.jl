@@ -79,7 +79,7 @@ g = 1.7
 
 using JuMP, Complementarity
 using Ipopt
-using Base.Test
+using Test
 
 
 @testset "gnash1m.jl" begin

@@ -35,7 +35,7 @@
 
 using JuMP, Complementarity
 using Ipopt
-using Base.Test
+using Test
 
 @testset "dempe.jl" begin
 

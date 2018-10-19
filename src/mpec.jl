@@ -276,19 +276,19 @@ macro complements(args...)
     if method == :simple || method == :smooth
         if Fhaslb
             expr = Expr(:call, esc(:(>=)), esc(func), :($lb_F)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
         end
         if Fhasub
             expr = Expr(:call, esc(:(<=)), esc(func), :($ub_F)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
         end
         if xhaslb
             expr = Expr(:call, esc(:(>=)), esc(var), :($lb_x)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
         end
         if xhasub
             expr = Expr(:call, esc(:(<=)), esc(var), :($ub_x)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
         end
     end
 
@@ -338,25 +338,25 @@ macro complements(args...)
         c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
         c2 = Expr(:call, esc(:(-)), esc(func), :($lb_F))
         expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
     elseif Fhaslb && xhasub
         c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
         c2 = Expr(:call, esc(:(-)), esc(func), :($lb_F))
         expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
     elseif Fhasub && xhaslb
         c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
         c2 = Expr(:call, esc(:(-)), :($ub_F), esc(func))
         expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
     elseif Fhasub && xhasub
         c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
         c2 = Expr(:call, esc(:(-)), :($ub_F), esc(func))
         expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
 
     else
         complements_error(args, "NO VALID CASE")

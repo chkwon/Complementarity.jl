@@ -1,7 +1,4 @@
-using Complementarity
-using Base.Test
-
-info("-------[Testing Complementarity/PATHSolver]------------------------------------------")
+using Complementarity, Test
 
 @testset "mcp test 1 with PATHSolver" begin
 
@@ -24,7 +21,7 @@ info("-------[Testing Complementarity/PATHSolver]-------------------------------
 
 
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-    status = solveMCP(m)
+    status = solveMCP(m, linear=true)
 
     z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
     Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
