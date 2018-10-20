@@ -1,3 +1,6 @@
+using Test
+
+@testset "Complementarity Tests" begin
 
 include("../examples/mcp/transmcp.jl")
 
@@ -10,3 +13,5 @@ include("runtests_lcp.jl")
 include("runtests_mcp_nlsolve.jl")
 
 include("runtests_mpec.jl")
+
+end

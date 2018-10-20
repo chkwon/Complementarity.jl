@@ -82,7 +82,7 @@ using Ipopt
 using Test
 
 
-# @testset "gnash1m.jl" begin
+@testset "gnash1m.jl" begin
 
     gg = 5000^(1/g)
 
@@ -107,4 +107,5 @@ using Test
 
     @show getobjectivevalue(gnash1m)
     @test isapprox(getobjectivevalue(gnash1m), -6.11671, atol=1e-4)
-# end
+    @test isapprox( getvalue(l)' * (L .- getvalue(y)), 0, atol=1e-5)
+end

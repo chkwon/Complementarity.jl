@@ -1,35 +1,37 @@
 # To escape variable only
 # (x+y)^2 ==> (esc(:x)+esc(:y))^2, instead of esc(:((x+y)^2))
-# sum(z[i] for i in 1:10) ==> sum(esc(:z)[i] for i in 1:10)
 # y[i] ==> esc(:y)[esc(:i)]
-esc_variable(ex; generator=false) = ex
-esc_variable(ex::Symbol; generator=false) = esc(ex)
-function esc_variable(ex::Expr; generator=false)
+# In generator like below, i is placed in parameters and i is not escaped.
+# sum(z[i] for i in 1:10) ==> sum(esc(:z)[i] for i in 1:10)
+esc_variable(ex, parameters=Vector{Symbol}(undef,0)) = ex
+function esc_variable(ex::Symbol, parameters=Vector{Symbol}(undef,0))
+    if ex in parameters
+        return ex
+    else
+        return esc(ex)
+    end
+end
+function esc_variable(ex::Expr, parameters=Vector{Symbol}(undef,0))
     ex2 = copy(ex)
-    @show ex2
     if ex2.head == :call
         for i in 2:length(ex2.args)
-            ex2.args[i] = esc_variable(ex2.args[i], generator=generator)
+            ex2.args[i] = esc_variable(ex2.args[i], parameters)
         end
     elseif ex2.head == :generator
-        ex2.args[1] = esc_variable(ex2.args[1], generator=true)
-        # for i in 2:length(ex2.args)
-        #     push!(parameters, ex2.args[i].args[1])
-        # end
+        ex2.args[1] = esc_variable(ex2.args[1], parameters)
+        for i in 2:length(ex2.args)
+            push!(parameters, ex2.args[i].args[1])
+        end
     elseif ex2.head == :ref
-        if generator
-            ex2.args[1] = esc_variable(ex2.args[1], generator=generator)
-        else
-            for i in 1:length(ex2.args)
-                ex2.args[i] = esc_variable(ex2.args[i], generator=generator)
-            end
+        for i in 1:length(ex2.args)
+            ex2.args[i] = esc_variable(ex2.args[i], parameters)
         end
     elseif ex2.head == :escape
         # do nothing
     else
         @show ex2
         dump(ex2)
-        @error("In esc_variable(ex): ex2.head == $(ex2.head). Error. Not supported.")
+        @error("In esc_variable(ex): ex2.head == $(ex2.head). Error. Not supported. Report to: https://github.com/chkwon/Complementarity.jl/issues")
     end
     return ex2
 end
@@ -63,7 +65,6 @@ function smooth(c1, c2)
 end
 
 function get_complementarity(c1, c2, method)
-    @show method
     if method == :smooth
         expr = smooth(c1, c2)
     elseif method == :simple
@@ -73,9 +74,7 @@ function get_complementarity(c1, c2, method)
         expr = smooth(c1, c2)
     end
 
-    @show expr
     return expr
-
 end
 
 
@@ -359,8 +358,6 @@ macro complements(args...)
     else
         complements_error(args, "NO VALID CASE")
     end
-
-    @show code
 
     return code
 end
