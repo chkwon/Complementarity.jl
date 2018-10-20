@@ -82,29 +82,29 @@ using Ipopt
 using Test
 
 
-@testset "gnash1m.jl" begin
+# @testset "gnash1m.jl" begin
 
     gg = 5000^(1/g)
 
-    m = Model(solver=IpoptSolver())
+    gnash1m = Model(solver=IpoptSolver())
 
-    @variable(m, 0 <= x <= L)
-    @variable(m, y[1:4])
-    @variable(m, l[1:4])
-    @variable(m, Q >= 0)
-    @constraint(m, Q == x+y[1]+y[2]+y[3]+y[4])
-    @NLobjective(m, Min, c[1]*x + b[1]/(b[1]+1)*K[1]^(-1/b[1])*x^((1+b[1])/b[1])
+    @variable(gnash1m, 0 <= x <= L)
+    @variable(gnash1m, y[1:4])
+    @variable(gnash1m, l[1:4])
+    @variable(gnash1m, Q >= 0)
+    @constraint(gnash1m, Q == x+y[1]+y[2]+y[3]+y[4])
+    @NLobjective(gnash1m, Min, c[1]*x + b[1]/(b[1]+1)*K[1]^(-1/b[1])*x^((1+b[1])/b[1])
      		             - x*( gg*Q^(-1/g) ) )
 
-    @NLconstraint(m, cnstr[i=1:4], 0 == ( c[i+1] + K[i+1]^(-1/b[i+1])*y[i] ) - ( gg*Q^(-1/g) )
+    @NLconstraint(gnash1m, cnstr[i=1:4], 0 == ( c[i+1] + K[i+1]^(-1/b[i+1])*y[i] ) - ( gg*Q^(-1/g) )
                                       - y[i]*( -1/g*gg*Q^(-1-1/g) ) - l[i] )
 
     for i in 1:4
-        @complements(m, l[i], 0 <= y[i] <= L, smooth)
+        @complements(gnash1m, l[i], 0 <= y[i] <= L, smooth)
     end
 
-    solve(m)
+    solve(gnash1m)
 
-    @show getobjectivevalue(m)
-    @test isapprox(getobjectivevalue(m), -6.11671, atol=1e-4)
-end
+    @show getobjectivevalue(gnash1m)
+    @test isapprox(getobjectivevalue(gnash1m), -6.11671, atol=1e-4)
+# end

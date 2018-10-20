@@ -32,23 +32,23 @@ using Test
 
 
 # @testset "bard1.jl" begin
-    m = Model(solver=IpoptSolver())
+    bard1 = Model(solver=IpoptSolver())
     # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
-    @variable(m, x>=0)
-    @variable(m, y>=0)
-    @variable(m, l[1:3])
+    @variable(bard1, x>=0)
+    @variable(bard1, y>=0)
+    @variable(bard1, l[1:3])
 
-    @NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
+    @NLobjective(bard1, Min, (x - 5)^2 + (2*y + 1)^2)
 
-    @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
+    @NLconstraint(bard1, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
 
-    @complements(m, 0 <= 3*x - y - 3,        l[1] >= 0, smooth)
-    @complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
-    @complements(m, 0 <= - x - y + 7,        l[3] >= 0, simple)
+    @complements(bard1, 0 <= 3*x - y - 3,        l[1] >= 0, smooth)
+    @complements(bard1, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
+    @complements(bard1, 0 <= - x - y + 7,        l[3] >= 0, simple)
 
-    solve(m)
+    solve(bard1)
 
-    @show getobjectivevalue(m)
-    @test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+    @show getobjectivevalue(bard1)
+    @test isapprox(getobjectivevalue(bard1), 17.0000, atol=1e-4)
 # end

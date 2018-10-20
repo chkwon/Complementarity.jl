@@ -9,4 +9,4 @@ include("runtests_lcp.jl")
 
 include("runtests_mcp_nlsolve.jl")
 
-# include("runtests_mpec.jl")
+include("runtests_mpec.jl")
