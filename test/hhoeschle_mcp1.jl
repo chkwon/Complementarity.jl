@@ -2,7 +2,7 @@
 # https://github.com/chkwon/PATHSolver.jl/issues/16
 #########################################################################
 
-using Complementarity
+using Complementarity, Printf
 
 @testset "hhoeschle mcp 1" begin
 

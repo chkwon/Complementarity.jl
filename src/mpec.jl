@@ -1,3 +1,42 @@
+# To escape variable only
+# (x+y)^2 ==> (esc(:x)+esc(:y))^2, instead of esc(:((x+y)^2))
+# y[i] ==> esc(:y)[esc(:i)]
+# In generator like below, i is placed in parameters and i is not escaped.
+# sum(z[i] for i in 1:10) ==> sum(esc(:z)[i] for i in 1:10)
+esc_variable(ex, parameters=Vector{Symbol}(undef,0)) = ex
+function esc_variable(ex::Symbol, parameters=Vector{Symbol}(undef,0))
+    if ex in parameters
+        return ex
+    else
+        return esc(ex)
+    end
+end
+function esc_variable(ex::Expr, parameters=Vector{Symbol}(undef,0))
+    ex2 = copy(ex)
+    if ex2.head == :call
+        for i in 2:length(ex2.args)
+            ex2.args[i] = esc_variable(ex2.args[i], parameters)
+        end
+    elseif ex2.head == :generator
+        ex2.args[1] = esc_variable(ex2.args[1], parameters)
+        for i in 2:length(ex2.args)
+            push!(parameters, ex2.args[i].args[1])
+        end
+    elseif ex2.head == :ref
+        for i in 1:length(ex2.args)
+            ex2.args[i] = esc_variable(ex2.args[i], parameters)
+        end
+    elseif ex2.head == :escape
+        # do nothing
+    else
+        @show ex2
+        dump(ex2)
+        @error("In esc_variable(ex): ex2.head == $(ex2.head). Error. Not supported. Report to: https://github.com/chkwon/Complementarity.jl/issues")
+    end
+    return ex2
+end
+
+
 
 esc_nonconstant(x::Number) = x
 esc_nonconstant(x) = esc(x)
@@ -14,30 +53,28 @@ end
 
 
 function smooth(c1, c2)
-    c1s = Expr(:call, esc(:(^)), c1, 2)
-    c2s = Expr(:call, esc(:(^)), c2, 2)
-    cs = Expr(:call, esc(:(+)), c1s, c2s, :($mpec_tol))
-    csqrt = Expr(:call, esc(:sqrt), cs)
+    c1s = Expr(:call, :(^), c1, 2)
+    c2s = Expr(:call, :(^), c2, 2)
+    cs = Expr(:call, :(+), c1s, c2s, :($mpec_tol))
+    csqrt = Expr(:call, :sqrt, cs)
 
-    csum = Expr(:call, esc(:+), c1, c2)
-    cc = Expr(:call, esc(:-), csqrt, csum)
+    csum = Expr(:call, :+, c1, c2)
+    cc = Expr(:call, :-, csqrt, csum)
 
-    return Expr(:call, esc(:(==)), cc, 0  )
+    return Expr(:call, :(==), cc, 0  )
 end
 
 function get_complementarity(c1, c2, method)
-
     if method == :smooth
         expr = smooth(c1, c2)
     elseif method == :simple
-        cc = Expr(:call, esc(:(*)), c1, c2)
-        expr = Expr(:call, esc(:(<=)), cc, :($mpec_tol)  )
+        cc = Expr(:call, :(*), c1, c2)
+        expr = Expr(:call, :(<=), cc, :($mpec_tol)  )
     else
         expr = smooth(c1, c2)
     end
 
     return expr
-
 end
 
 
@@ -78,14 +115,8 @@ macro complements(args...)
     Fhaslb = false
     Fhasub = false
 
-
     # Identify the variable bounds. Five (legal) possibilities are "x >= lb",
     # "x <= ub", "lb <= x <= ub", "x == val", or just plain "x"
-    if VERSION < v"0.5.0-dev+3231"
-        x = comparison_to_call(x)
-        F = comparison_to_call(F)
-    end
-
 
     ############################### x      #####################################
     if isexpr(x, :comparison) # two-sided
@@ -124,16 +155,6 @@ macro complements(args...)
             xhaslb = true
             xhasub = false
 
-            # # May also be ub >= x
-            # if isa(eval(var), Number)
-            #     var = x.args[3]
-            #     @assert length(x.args) == 3
-            #     ub_x = esc_nonconstant(x.args[2])
-            #     lb_x = -Inf
-            #     xhaslb = false
-            #     xhasub = true
-            # end
-
         elseif x.args[1] == :<= || x.args[1] == :≤
             # x <= ub
             var = x.args[2]
@@ -142,16 +163,6 @@ macro complements(args...)
             lb_x = -Inf
             xhaslb = false
             xhasub = true
-
-            # # May also be lb <= x
-            # if isa(eval(var), Number)
-            #     var = x.args[3]
-            #     @assert length(x.args) == 3
-            #     ub_x = Inf
-            #     lb_x = esc_nonconstant(x.args[2])
-            #     xhaslb = true
-            #     xhasub = false
-            # end
 
         else
             # # Its a comparsion, but not using <= ... <=
@@ -204,13 +215,6 @@ macro complements(args...)
 
     elseif isexpr(F, :call)
         if F.args[1] == :>= || F.args[1] == :≥
-            # x >= lb
-            # func = F.args[2]
-            # @assert length(F.args) == 3
-            # lb_F = esc_nonconstant(F.args[3])
-            # ub_F = Inf
-            # Fhaslb = true
-
             # May also be ub >= x
             # if isa(eval(func), Number)
             func = F.args[3]
@@ -222,13 +226,6 @@ macro complements(args...)
             # end
 
         elseif F.args[1] == :<= || F.args[1] == :≤
-            # # x <= ub
-            # func = F.args[2]
-            # @assert length(F.args) == 3
-            # ub_F = esc_nonconstant(F.args[3])
-            # lb_F = -Inf
-            # Fhasub = true
-
             # May also be lb <= x
             # if isa(eval(func), Number)
             func = F.args[3]
@@ -263,9 +260,6 @@ macro complements(args...)
         complements_error(args, "The total number of bounds on the function and the variable must be exactly two.")
     end
 
-    var_esc = esc(var)
-    func_esc = esc(func)
-
     if isexpr(var, :call)
         complements_error(args, "The second argument must be a variable, not an expression.")
     end
@@ -275,93 +269,95 @@ macro complements(args...)
     # Bound constraints are NOT added in :smooth method.
     if method == :simple || method == :smooth
         if Fhaslb
-            expr = Expr(:call, esc(:(>=)), esc(func), :($lb_F)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, quote
+                @NLconstraint( $(m), $(esc_variable(func)) >= $(lb_F) )
+            end )
         end
         if Fhasub
-            expr = Expr(:call, esc(:(<=)), esc(func), :($ub_F)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, quote
+                @NLconstraint( $(m), $(esc_variable(func)) <= $(ub_F) )
+            end )
         end
         if xhaslb
-            expr = Expr(:call, esc(:(>=)), esc(var), :($lb_x)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, quote
+                @NLconstraint( $(m), $(esc_variable(var)) >= $(lb_x) )
+            end )
         end
         if xhasub
-            expr = Expr(:call, esc(:(<=)), esc(var), :($ub_x)  )
-            push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+            push!(code.args, quote
+                @NLconstraint( $(m), $(esc_variable(var)) <= $(ub_x) )
+            end )
         end
     end
 
-    # There must be a better way of writing the codes below...
+    # # There must be a better way of writing the codes below...
     if Fhaslb && Fhasub
         complements_error(args, "Both bounds on the function expression is currently not supported.")
 
     elseif xhaslb && xhasub
-
-        lowerbound_kw = Expr(:(=), esc(:lowerbound), 0)
-        if VERSION < v"0.6.0-dev.1934" # changed by julia PR #19868
-          lowerbound_kw = Expr(:kw, :lowerbound, 0)
-        end
-
-        # Additional variables are defined
         # v defined
-        push!(code.args,
-              Expr(:(=), esc(:v) ,
-                Expr(:macrocall, Symbol("@variable"), m,
-                  lowerbound_kw
-                ) ) )
+        push!(code.args, quote
+            $(esc(:v)) = @variable($(m), lowerbound=0)
+        end)
 
         # w defined
-        push!(code.args,
-              Expr(:(=), esc(:w) ,
-                Expr(:macrocall, Symbol("@variable"), m,
-                  lowerbound_kw
-                ) ) )
+        push!(code.args, quote
+            $(esc(:w)) = @variable($(m), lowerbound=0)
+        end)
 
         # v - w = func
-        vwdiff = Expr(:call, esc(:(-)), esc(:v), esc(:w))
-        # expr = Expr(:comparison, vwdiff, esc(:(==)), esc(func))
-        expr = Expr(:call, esc(:(==)), vwdiff, esc(func))
-        push!(code.args, Expr(:macrocall, Symbol("@constraint"), m, expr))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(esc(:v))-$(esc(:w)) == $(esc_variable(func)) )
+        end )
 
-        # v * (x-lb) = 0
-        c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
-        expr = get_complementarity(c1, esc(:v), method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
+        # v * (x - lb) = 0
+        c1 = Expr(:call, :(-), var, lb_x)
+        expr = esc_variable(get_complementarity(c1, :v, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
 
         # w * (ub - x) = 0
-        c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
-        expr = get_complementarity(c1, esc(:w), method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr))
+        c1 = Expr(:call, :(-), ub_x, var)
+        expr = esc_variable(get_complementarity(c1, :w, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
 
     elseif Fhaslb && xhaslb
-        c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
-        c2 = Expr(:call, esc(:(-)), esc(func), :($lb_F))
-        expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        c1 = Expr(:call, :(-), var, lb_x)
+        c2 = Expr(:call, :(-), func, lb_F)
+        expr = esc_variable(get_complementarity(c1, c2, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
 
     elseif Fhaslb && xhasub
-        c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
-        c2 = Expr(:call, esc(:(-)), esc(func), :($lb_F))
-        expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        c1 = Expr(:call, :(-), ub_x, var)
+        c2 = Expr(:call, :(-), func, lb_F)
+        expr = esc_variable(get_complementarity(c1, c2, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
 
     elseif Fhasub && xhaslb
-        c1 = Expr(:call, esc(:(-)), esc(var), :($lb_x))
-        c2 = Expr(:call, esc(:(-)), :($ub_F), esc(func))
-        expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
-
+        c1 = Expr(:call, :(-), var, lb_x)
+        c2 = Expr(:call, :(-), ub_F, func)
+        expr = esc_variable(get_complementarity(c1, c2, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
     elseif Fhasub && xhasub
-        c1 = Expr(:call, esc(:(-)), :($ub_x), esc(var))
-        c2 = Expr(:call, esc(:(-)), :($ub_F), esc(func))
-        expr = get_complementarity(c1, c2, method)
-        push!(code.args, Expr(:macrocall, Symbol("@NLconstraint"), m, expr ) )
+        c1 = Expr(:call, :(-), ub_x, var)
+        c2 = Expr(:call, :(-), ub_F, func)
+        expr = esc_variable(get_complementarity(c1, c2, method))
+        push!(code.args, quote
+            @NLconstraint( $(m), $(expr) )
+        end )
 
     else
         complements_error(args, "NO VALID CASE")
     end
 
     return code
-
 end

@@ -1,8 +1,7 @@
 using Complementarity
-using Base.Test
+using Test
 
-
-info("-------[Testing Complementarity/NLsolve]------------------------------------------")
+@info("-------[Testing Complementarity/NLsolve]------------------------------------------")
 
 @testset "mcp test 0 with NLsolve example" begin
 

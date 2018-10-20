@@ -28,7 +28,7 @@ using JuMP, Complementarity
 using Ipopt
 # using NLopt
 
-using Base.Test
+using Test
 
 
 @testset "bard1_test.jl" begin
@@ -54,15 +54,10 @@ using Base.Test
     @complements(m, 0 >= + x + y - 7,          l[3] <= 0, smooth)
 
     # just testing
-    macroexpand(:@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
-    macroexpand(:@complements(m, 0<= 3*x - y - 3 <=10,  l[1]))
-    macroexpand(:@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
-    macroexpand(:@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
-
-    # Errors
-    macroexpand(:@complements(m, 10 <= 3*x - y - 3 >= 5,  l[1]))
-    macroexpand(:@complements(m, 10 <= 3*x - y - 3,  l[1]))
-    macroexpand(:@complements(m, 3*x - y - 3 >= 0,  l[1]))
+    @macroexpand(@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
+    # @macroexpand(@complements(m, 0<= 3*x - y - 3 <=10,  l[1]))
+    @macroexpand(@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
+    # @macroexpand(@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
 
     solve(m)
     @show getvalue(x)

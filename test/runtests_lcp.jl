@@ -1,7 +1,7 @@
 using Complementarity
-using Base.Test
+using Test
 
-info("-------[Testing Complementarity/PATHSolver]------------------------------------------")
+@info("-------[Testing Complementarity/PATHSolver]------------------------------------------")
 
 @testset "LCP test 1 with PATHSolver" begin
 
@@ -44,7 +44,7 @@ info("-------[Testing Complementarity/PATHSolver]-------------------------------
     @show Fz
 
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
-        
+
 end
 
 

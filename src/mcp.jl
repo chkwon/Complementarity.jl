@@ -1,4 +1,4 @@
-type ComplementarityType
+mutable struct ComplementarityType
     lb::Float64
     var::JuMP.Variable
     ub::Float64
@@ -10,7 +10,7 @@ end
 
 function MCPModel()
     m = Model()
-    m.ext[:MCP] = Array{ComplementarityType}(0)
+    m.ext[:MCP] = Array{ComplementarityType}(undef, 0)
     return m
 end
 
@@ -37,8 +37,8 @@ end
 
 function getNamesLinearIndex(mcp_data)
     n = length(mcp_data)
-    var_name = Array{String}(n)
-    F_name = Array{String}(n)
+    var_name = Array{String}(undef, n)
+    F_name = Array{String}(undef, n)
     for i in 1:n
         var_name[linearindex(mcp_data[i].var)] = mcp_data[i].var_name
         F_name[linearindex(mcp_data[i].var)] = mcp_data[i].F_name
@@ -48,7 +48,7 @@ end
 
 function getInitialValuesLinearIndex(m, mcp_data)
     n = length(mcp_data)
-    initial_values = Array{Float64}(n)
+    initial_values = Array{Float64}(undef, n)
     for i in 1:n
 
         # init_val = getvalue(mcp_data[i].var) # This throws a warning when it is not set.
@@ -78,7 +78,7 @@ end
 
 function sortMCPDataperm(obj::Array{ComplementarityType,1})
     n = length(obj)
-    ref = Array{Int}(n)
+    ref = Array{Int}(undef, n)
     for i in 1:n
         ref[i] = obj[i].lin_idx
     end
@@ -145,7 +145,7 @@ function _solve_path(m::Model; linear=false)
     # ALL inputs to PATHSolver must be in LinearIndex
     if linear==true
         J0 = myjac(zeros(size(lb)))
-        Jr = myjac(100*rand(size(ub)))
+        Jr = myjac(100*rand(Float64, size(ub)))
 
         if norm(J0-Jr, 1) > 10e-8
             error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
@@ -166,7 +166,7 @@ function _solve_path(m::Model; linear=false)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(0)
+    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(undef, 0)
 
 
     # This function has changed the content of m already.
@@ -184,7 +184,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
         F_val = zeros(n)
         MathProgBase.eval_g(d, F_val, z)
 
-        copy!(fvec, F_val)
+        copyto!(fvec, F_val)
 
         # F_val also should be in LindexIndex
         # since it is the order in which constraints are added
@@ -288,7 +288,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(0)
+    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(undef, 0)
 
 
 
@@ -301,22 +301,31 @@ end
 
 
 
+# https://stackoverflow.com/questions/50084877/how-to-alias-a-macro-in-julia#comment87277306_50085297
+@eval const $(Symbol("@mapping")) = $(Symbol("@NLexpression"))
 
+# macro mapping(args...)
+#   if length(args) != 3
+#     error("3 arguments are required in @mapping(...)")
+#   end
+#   quote
+#     @NLexpression $(args...)
+#   end
+# end
 
-
-macro mapping(args...)
-  if length(args) != 3
-    error("3 arguments are required in @mapping(...)")
-  end
-
-  m = args[1]
-  name = args[2]
-  ex = args[3]
-
-  expression = Expr(:macrocall, Symbol("@NLexpression"), m, name, ex)
-
-  return esc(expression)
-end
+# macro mapping(args...)
+#   if length(args) != 3
+#     error("3 arguments are required in @mapping(...)")
+#   end
+#
+#   m = args[1]
+#   name = args[2]
+#   ex = args[3]
+#
+#   expression = Expr(:macrocall, Symbol("@NLexpression"), m, name, ex)
+#
+#   return esc(expression)
+# end
 
 
 function add_complementarity(m::JuMP.Model, var::JuMP.Variable, F::JuMP.NonlinearExpression, F_name::String)
@@ -345,8 +354,8 @@ macro complementarity(m, F, var)
 
     # when var is a single JuMP variable
     if isa($var, JuMP.Variable)
-      ex_var = parse(getname($var))
-      ex_F = parse($F_base_name)
+      ex_var = Meta.parse(getname($var))
+      ex_F = Meta.parse($F_base_name)
 
       if typeof(ex_var) == Symbol || typeof(ex_F) == Symbol
         add_complementarity($m, $var, $F, $F_base_name)

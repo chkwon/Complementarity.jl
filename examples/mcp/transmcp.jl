@@ -15,7 +15,7 @@
 # Princeton University Press, Princeton, New Jersey, 1963.
 
 using Complementarity
-using Base.Test
+using Test
 
 @testset "transmcp.jl" begin
 

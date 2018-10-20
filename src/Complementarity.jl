@@ -8,12 +8,16 @@ module Complementarity
 # importall JuMP
 using JuMP
 using Base.Meta
+using LinearAlgebra, SparseArrays
 
-import PATHSolver, MathProgBase, NLsolve
+import PATHSolver, NLsolve, MathProgBase
 
 export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP, solveLCP,
-        @complementarity, @complements, @mapping
+        getvalue, setvalue,
+        @complementarity, @complements, @mapping, @variable,
+        @NLexpression, @expression,
+        PATHSolver
 
 mpec_tol = 1e-8
 
