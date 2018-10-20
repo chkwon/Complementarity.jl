@@ -2,6 +2,14 @@
 using JuMP
 
 
+# https://github.com/StructJuMP/StructJuMP.jl/blob/master/src/StructJuMP.jl
+# using JuMP # To reexport, should be using (not import)
+# # Macro to exportall
+# macro exportall(pkg)
+#     Expr(:export, names(JuMP)...)
+# end
+# @exportall JuMP
+
 module Complementarity
 
 # package code goes here
