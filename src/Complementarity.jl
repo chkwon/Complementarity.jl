@@ -1,6 +1,4 @@
 # isdefined(Base, :__precompile__) && __precompile__()
-using JuMP
-
 
 # https://github.com/StructJuMP/StructJuMP.jl/blob/master/src/StructJuMP.jl
 # using JuMP # To reexport, should be using (not import)
@@ -18,11 +16,12 @@ using JuMP
 using Base.Meta
 using LinearAlgebra, SparseArrays
 
-import PATHSolver, NLsolve, MathProgBase
+import PATHSolver, NLsolve, MathOptInterface
+const MOI = MathOptInterface
 
 export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP, solveLCP,
-        getvalue, setvalue,
+        result_value, set_start_value,
         @complementarity, @complements, @mapping, @variable,
         @NLexpression, @expression,
         PATHSolver
