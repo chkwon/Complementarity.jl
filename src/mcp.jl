@@ -156,7 +156,7 @@ function _solve_path(m::JuMP.Model; linear=false)
         J0 = myjac(zeros(size(lb)))
         Jr = myjac(100*rand(Float64, size(ub)))
 
-        if norm(J0-Jr, 1) > 10e-8
+        if !isapprox(J0, Jr)
             error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
         end
         status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
