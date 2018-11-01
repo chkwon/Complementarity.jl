@@ -15,7 +15,7 @@ addons:
         - gfortran
 notifications:
   email: false
-# script: # use the default script which is equivalent to the following
+script: # use the default script which is equivalent to the following
 #    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #    - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("Complementarity"); Pkg.test("Complementarity", coverage=true)'
    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
