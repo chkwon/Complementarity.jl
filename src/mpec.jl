@@ -297,12 +297,12 @@ macro complements(args...)
     elseif xhaslb && xhasub
         # v defined
         push!(code.args, quote
-            $(esc(:v)) = @variable($(m), lowerbound=0)
+            $(esc(:v)) = @variable($(m), lower_bound=0)
         end)
 
         # w defined
         push!(code.args, quote
-            $(esc(:w)) = @variable($(m), lowerbound=0)
+            $(esc(:w)) = @variable($(m), lower_bound=0)
         end)
 
         # v - w = func
