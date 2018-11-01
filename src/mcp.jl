@@ -114,8 +114,11 @@ function _solve_path(m::JuMP.Model; linear=false)
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         J_struct = MOI.jacobian_structure(d)
-        I, J = collect.(zip(J_struct...))
-        jac_val = zeros(size(J))
+
+        I = first.(J_struct)
+        J = last.(J_struct)
+
+        jac_val = zeros(length(J))
         MOI.eval_constraint_jacobian(d, jac_val, z)
 
         # return matrix also should be in LinearIndex
@@ -196,8 +199,11 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         J_struct = MOI.jacobian_structure(d)
-        I, J = collect.(zip(J_struct...))
-        jac_val = zeros(size(J))
+
+        I = first.(J_struct)
+        J = last.(J_struct)
+
+        jac_val = zeros(length(J))
         MOI.eval_constraint_jacobian(d, jac_val, z)
 
         sparse_fjac = sparse(I, J, jac_val)
