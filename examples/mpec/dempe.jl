@@ -53,9 +53,9 @@ using Test
     @complements(dempe, 0 >= z^2 - x,  w >= 0, simple)
 
     # Initial solutions to help reaching the optimality
-    setvalue(x, 50)
-    setvalue(z, 50)
-    setvalue(w, 1e5)
+    set_start_value(x, 50)
+    set_start_value(z, 50)
+    set_start_value(w, 1e5)
 
     JuMP.optimize!(dempe)
 
