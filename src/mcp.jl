@@ -10,12 +10,12 @@ mutable struct ComplementarityType
 end
 
 function MCPModel()
-    m = Model()
+    m = JuMP.Model()
     m.ext[:MCP] = Array{ComplementarityType}(undef, 0)
     return m
 end
 
-function getMCPData(m::Model)
+function getMCPData(m::JuMP.Model)
     if haskey(m.ext, :MCP)
         return m.ext[:MCP]::Array
     else
@@ -71,7 +71,7 @@ function getInitialValuesLinearIndex(m, mcp_data)
     return initial_values
 end
 
-function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
+function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false)
     if solver == :PATH
         return _solve_path(m, linear=linear)
     elseif solver == :NLsolve
@@ -79,7 +79,7 @@ function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
     end
 end
 
-function solveLCP(m::Model; solver=:PATH, method=:trust_region)
+function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
     solveMCP(m, solver=solver, method=method, linear=true)
 end
 
@@ -94,7 +94,7 @@ function sortMCPDataperm(obj::Array{ComplementarityType,1})
 end
 
 # Using PATHSolver
-function _solve_path(m::Model; linear=false)
+function _solve_path(m::JuMP.Model; linear=false)
 
     function myfunc(z)
         # z is in LinearIndex, passed from PATHSolver
@@ -136,7 +136,7 @@ function _solve_path(m::Model; linear=false)
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
     p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
+    JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
@@ -179,7 +179,7 @@ function _solve_path(m::Model; linear=false)
 end
 
 
-function _solve_nlsolve(m::Model; method=:trust_region)
+function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     function myfunc!(fvec, z)
         # z is in LinearIndex, passed from PATHSolver
@@ -216,7 +216,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     # i = LinearIndex
     # Add constraint in the order of LinearIndex
     p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
+    JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in LinearIndex
     lb, ub = getBoundsLinearIndex(mcp_data)
@@ -356,19 +356,15 @@ macro complementarity(m, F, var)
       end
 
     # when var is a single dimensional Array of JuMP.Variable
-    elseif isa($var, Array{JuMP.VariableRef, 1})
-      idx_list = 1:length($var)
-
-      for idx in idx_list
-        idx_name = idx
+    elseif isa($var, Array{JuMP.VariableRef})
+      for idx in CartesianIndices(size($var))
+        idx_name = idx.I
         F_name = string($F_base_name, "[", idx_name, "]")
         var_idx = $var[idx]
         F_idx = $F[idx]
 
         add_complementarity($m, var_idx, F_idx, F_name)
       end
-
-    # elseif isa($var, Array{JuMP.VariableRef, n}) when n>1 ????
 
     else # isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1 or > 1
       # when var is a multi-dimensional JuMP variable array

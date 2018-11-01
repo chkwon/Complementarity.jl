@@ -12,12 +12,17 @@ module Complementarity
 
 # package code goes here
 # importall JuMP
-using JuMP
 using Base.Meta
 using LinearAlgebra, SparseArrays
 
 import PATHSolver, NLsolve, MathOptInterface
 const MOI = MathOptInterface
+
+using JuMP
+macro exportall(pkg)
+    Expr(:export, names(JuMP)...)
+end
+@exportall JuMP
 
 export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP, solveLCP,

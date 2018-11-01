@@ -39,7 +39,7 @@ using Test
 
 @testset "dempe.jl" begin
 
-    dempe = Model(solver=IpoptSolver())
+    dempe = Model(with_optimizer(Ipopt.Optimizer))
 
 
     @variable(dempe, x)
@@ -57,13 +57,13 @@ using Test
     setvalue(z, 50)
     setvalue(w, 1e5)
 
-    solve(dempe)
+    JuMP.optimize!(dempe)
 
-    @show getobjectivevalue(dempe)
-    @test isapprox(getobjectivevalue(dempe), 28.25, atol=1e-4)
+    @show JuMP.objective_value(dempe)
+    @test isapprox(JuMP.objective_value(dempe), 28.25, atol=1e-4)
 
-    xx = getvalue(x)
-    zz = getvalue(z)
-    ww = getvalue(w)
+    xx = JuMP.result_value(x)
+    zz = JuMP.result_value(z)
+    ww = JuMP.result_value(w)
     @test isapprox(zz - 3 + 2*zz*ww, 0, atol=1e-4)
 end

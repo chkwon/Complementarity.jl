@@ -86,7 +86,7 @@ using Test
 
     gg = 5000^(1/g)
 
-    gnash1m = Model(solver=IpoptSolver())
+    gnash1m = Model(with_optimizer(Ipopt.Optimizer))
 
     @variable(gnash1m, 0 <= x <= L)
     @variable(gnash1m, y[1:4])
@@ -103,9 +103,9 @@ using Test
         @complements(gnash1m, l[i], 0 <= y[i] <= L, smooth)
     end
 
-    solve(gnash1m)
+    JuMP.optimize!(gnash1m)
 
-    @show getobjectivevalue(gnash1m)
-    @test isapprox(getobjectivevalue(gnash1m), -6.11671, atol=1e-4)
-    @test isapprox( getvalue(l)' * (L .- getvalue(y)), 0, atol=1e-5)
+    @show JuMP.objective_value(gnash1m)
+    @test isapprox(JuMP.objective_value(gnash1m), -6.11671, atol=1e-4)
+    @test isapprox( JuMP.result_value.(l)' * (L .- JuMP.result_value.(y)), 0, atol=1e-5)
 end

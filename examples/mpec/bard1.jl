@@ -32,7 +32,7 @@ using Test
 
 
 # @testset "bard1.jl" begin
-    bard1 = Model(solver=IpoptSolver())
+    bard1 = Model(with_optimizer(Ipopt.Optimizer))
     # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
     @variable(bard1, x>=0)
@@ -47,8 +47,8 @@ using Test
     @complements(bard1, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
     @complements(bard1, 0 <= - x - y + 7,        l[3] >= 0, simple)
 
-    solve(bard1)
+    JuMP.optimize!(bard1)
 
-    @show getobjectivevalue(bard1)
-    @test isapprox(getobjectivevalue(bard1), 17.0000, atol=1e-4)
+    @show JuMP.objective_value(bard1)
+    @test isapprox(JuMP.objective_value(bard1), 17.0000, atol=1e-4)
 # end

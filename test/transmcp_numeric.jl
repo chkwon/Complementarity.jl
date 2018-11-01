@@ -17,10 +17,12 @@
 using Complementarity
 using Test
 
-@testset "transmcp.jl" begin
+@testset "transmcp_numeric.jl 1" begin
 
-    plants = ["seattle", "san-diego"]
-    markets = ["new-york", "chicago", "topeka"]
+    # plants = ["seattle", "san-diego"]
+    plants = 1:2
+    # markets = ["new-york", "chicago", "topeka"]
+    markets = 1:3
 
     capacity = [350, 600]
     a = Dict(zip(plants, capacity))
@@ -46,7 +48,6 @@ using Test
     @variable(m, x[i in plants, j in markets] >= 0)
 
     @NLexpression(m, c[i in plants, j in markets], f * d[i,j] / 1000)
-    
     @mapping(m, profit[i in plants, j in markets],    w[i] + c[i,j] - p[j])
     @mapping(m, supply[i in plants],                  a[i] - sum(x[i,j] for j in markets))
     @mapping(m, fxdemand[j in markets],               sum(x[i,j] for i in plants) - b[j])
@@ -66,7 +67,64 @@ using Test
 
     @show status
     @test status == :Solved
-    @test isapprox(result_value(x["seattle", "chicago"]), 300.0)
-    @test isapprox(result_value(p["topeka"]),  0.126)
+    @test isapprox(result_value(x[1,2]), 300.0)
+    @test isapprox(result_value(p[3]),  0.126)
+
+end
+
+
+
+@testset "transmcp_numeric.jl 2" begin
+
+    # plants = ["seattle", "san-diego"]
+    plants = 1:2
+    # markets = ["new-york", "chicago", "topeka"]
+    markets = 1:3
+
+    capacity = [350, 600]
+    a = Dict(zip(plants, capacity))
+
+    demand = [325, 300, 275]
+    b = Dict(zip(markets, demand))
+
+    elasticity = [1.5, 1.2, 2.0]
+    esub = Dict(zip(markets, elasticity))
+
+    distance = [ 2.5 1.7 1.8 ;
+                 2.5 1.8 1.4  ]
+    d = Dict()
+    for i in 1:length(plants), j in 1:length(markets)
+        d[plants[i], markets[j]] = distance[i,j]
+    end
+
+    f = 90
+
+    m = MCPModel()
+    @variable(m, w[1:2] >= 0)
+    @variable(m, p[1:3] >= 0)
+    @variable(m, x[1:2, 1:3] >= 0)
+
+    @NLexpression(m, c[i in 1:2, j in 1:3], f * d[i,j] / 1000)
+    @mapping(m, profit[i in 1:2, j in 1:3],    w[i] + c[i,j] - p[j])
+    @mapping(m, supply[i in 1:2],                  a[i] - sum(x[i,j] for j in markets))
+    @mapping(m, fxdemand[j in 1:3],               sum(x[i,j] for i in plants) - b[j])
+
+    @complementarity(m, profit, x)
+    @complementarity(m, supply, w)
+    @complementarity(m, fxdemand, p)
+
+    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+
+
+    status = solveMCP(m)
+
+    @show result_value.(x)
+    @show result_value.(w)
+    @show result_value.(p)
+
+    @show status
+    @test status == :Solved
+    @test isapprox(result_value(x[1,2]), 300.0)
+    @test isapprox(result_value(p[3]),  0.126)
 
 end
