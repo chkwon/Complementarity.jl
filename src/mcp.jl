@@ -23,10 +23,9 @@ function getMCPData(m::JuMP.Model)
     end
 end
 
-# raw_index(v::MOI.VariableIndex) = v.value
 raw_index(v::JuMP.VariableRef) = JuMP.index(v).value
 
-function getBoundsLinearIndex(mcp_data)
+function getBoundsRawIndex(mcp_data)
     n = length(mcp_data)
     lb = zeros(n)
     ub = ones(n)
@@ -38,7 +37,7 @@ function getBoundsLinearIndex(mcp_data)
 end
 
 
-function getNamesLinearIndex(mcp_data)
+function getNamesRawIndex(mcp_data)
     n = length(mcp_data)
     var_name = Array{String}(undef, n)
     F_name = Array{String}(undef, n)
@@ -49,7 +48,7 @@ function getNamesLinearIndex(mcp_data)
     return var_name, F_name
 end
 
-function getInitialValuesLinearIndex(m, mcp_data)
+function getInitialValuesRawIndex(m, mcp_data)
     n = length(mcp_data)
     initial_values = Array{Float64}(undef, n)
     for i in 1:n
@@ -97,20 +96,20 @@ end
 function _solve_path(m::JuMP.Model; linear=false)
 
     function myfunc(z)
-        # z is in LinearIndex, passed from PATHSolver
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         F_val = zeros(n)
         MOI.eval_constraint(d, F_val, z)
 
-        # F_val also should be in LinearIndex
+        # F_val also should be in RawIndex
         # since it is the order in which constraints are added
 
         return F_val
     end
 
     function myjac(z)
-        # z is in LinearIndex, passed from PATHSolver
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         J_struct = MOI.jacobian_structure(d)
@@ -121,7 +120,7 @@ function _solve_path(m::JuMP.Model; linear=false)
         jac_val = zeros(length(J))
         MOI.eval_constraint_jacobian(d, jac_val, z)
 
-        # return matrix also should be in LinearIndex
+        # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
 
         return sparse(I, J, jac_val)
@@ -132,26 +131,26 @@ function _solve_path(m::JuMP.Model; linear=false)
 
     # Two Indices
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
-    # LinearIndex: the order used in JuMP / MathProgBase
+    # RawIndex: the order used in JuMP / MathOptInteface
 
     # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
-    # i = LinearIndex
-    # Add constraint in the order of LinearIndex
+    # i = RawIndex
+    # Add constraint in the order of RawIndex
     p = sortMCPDataperm(mcp_data)
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
-    # lb and ub in LinearIndex
-    lb, ub = getBoundsLinearIndex(mcp_data)
+    # lb and ub in RawIndex
+    lb, ub = getBoundsRawIndex(mcp_data)
 
-    # var_name, F_name in LinearIndex
-    var_name, F_name = getNamesLinearIndex(mcp_data)
+    # var_name, F_name in RawIndex
+    var_name, F_name = getNamesRawIndex(mcp_data)
 
     # initial values
-    initial_values = getInitialValuesLinearIndex(m, mcp_data)
+    initial_values = getInitialValuesRawIndex(m, mcp_data)
 
     # Solve the MCP using PATHSolver
-    # ALL inputs to PATHSolver must be in LinearIndex
+    # ALL inputs to PATHSolver must be in RawIndex
     if linear==true
         J0 = myjac(zeros(size(lb)))
         Jr = myjac(100*rand(Float64, size(ub)))
@@ -163,7 +162,7 @@ function _solve_path(m::JuMP.Model; linear=false)
     else
         status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
     end
-    # z, f are in LinearIndex
+    # z, f are in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
     for i in 1:n
@@ -186,7 +185,7 @@ end
 function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     function myfunc!(fvec, z)
-        # z is in LinearIndex, passed from PATHSolver
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         F_val = zeros(n)
@@ -196,7 +195,7 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
     end
 
     function myjac!(fjac, z)
-        # z is in LinearIndex, passed from PATHSolver
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
         J_struct = MOI.jacobian_structure(d)
@@ -216,23 +215,23 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     # Two Indices
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
-    # LinearIndex: the order used in JuMP / MathProgBase
+    # RawIndex: the order used in JuMP / MathProgBase
 
     # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
-    # i = LinearIndex
-    # Add constraint in the order of LinearIndex
+    # i = RawIndex
+    # Add constraint in the order of RawIndex
     p = sortMCPDataperm(mcp_data)
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
-    # lb and ub in LinearIndex
-    lb, ub = getBoundsLinearIndex(mcp_data)
+    # lb and ub in RawIndex
+    lb, ub = getBoundsRawIndex(mcp_data)
 
     # initial values
-    initial_values = getInitialValuesLinearIndex(m, mcp_data)
+    initial_values = getInitialValuesRawIndex(m, mcp_data)
 
     # Solve the MCP using NLsolve
-    # ALL inputs to NLsolve must be in LinearIndex
+    # ALL inputs to NLsolve must be in RawIndex
 
     r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_values, method = method,
         iterations = 10_000)
@@ -270,7 +269,7 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
     #  :g_calls
 
 
-    # r.zero is in LinearIndex
+    # r.zero is in RawIndex
     for i in 1:n
         set_result_value(mcp_data[i], r.zero[mcp_data[i].raw_idx])
     end
