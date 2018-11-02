@@ -15,17 +15,17 @@ function MCPModel()
     return m
 end
 
-function getMCPData(m::JuMP.Model)
+function get_MCP_data(m::JuMP.Model)
     if haskey(m.ext, :MCP)
         return m.ext[:MCP]::Array
     else
-        error("The 'getMCPData' function is only for MCP models as in ComplementarityType.jl")
+        error("The 'get_MCP_data' function is only for MCP models as in ComplementarityType.jl")
     end
 end
 
 raw_index(v::JuMP.VariableRef) = JuMP.index(v).value
 
-function getBoundsRawIndex(mcp_data)
+function get_bounds_in_raw_index(mcp_data)
     n = length(mcp_data)
     lb = zeros(n)
     ub = ones(n)
@@ -37,7 +37,7 @@ function getBoundsRawIndex(mcp_data)
 end
 
 
-function getNamesRawIndex(mcp_data)
+function get_names_in_raw_index(mcp_data)
     n = length(mcp_data)
     var_name = Array{String}(undef, n)
     F_name = Array{String}(undef, n)
@@ -48,7 +48,7 @@ function getNamesRawIndex(mcp_data)
     return var_name, F_name
 end
 
-function getInitialValuesRawIndex(m, mcp_data)
+function get_initial_values_in_raw_index(m, mcp_data)
     n = length(mcp_data)
     initial_values = Array{Float64}(undef, n)
     for i in 1:n
@@ -82,7 +82,7 @@ function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
     solveMCP(m, solver=solver, method=method, linear=true)
 end
 
-function sortMCPDataperm(obj::Array{ComplementarityType,1})
+function sortperm_MCP_data(obj::Array{ComplementarityType,1})
     n = length(obj)
     ref = Array{Int}(undef, n)
     for i in 1:n
@@ -126,7 +126,7 @@ function _solve_path(m::JuMP.Model; linear=false)
         return sparse(I, J, jac_val)
     end
 
-    mcp_data = getMCPData(m)
+    mcp_data = get_MCP_data(m)
     n = length(mcp_data)
 
     # Two Indices
@@ -137,17 +137,17 @@ function _solve_path(m::JuMP.Model; linear=false)
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = RawIndex
     # Add constraint in the order of RawIndex
-    p = sortMCPDataperm(mcp_data)
+    p = sortperm_MCP_data(mcp_data)
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in RawIndex
-    lb, ub = getBoundsRawIndex(mcp_data)
+    lb, ub = get_bounds_in_raw_index(mcp_data)
 
     # var_name, F_name in RawIndex
-    var_name, F_name = getNamesRawIndex(mcp_data)
+    var_name, F_name = get_names_in_raw_index(mcp_data)
 
     # initial values
-    initial_values = getInitialValuesRawIndex(m, mcp_data)
+    initial_values = get_initial_values_in_raw_index(m, mcp_data)
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in RawIndex
@@ -175,7 +175,7 @@ function _solve_path(m::JuMP.Model; linear=false)
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
     # Array{JuMP.NonlinearConstraint,1}(undef, 0)
-    m.nlp_data.nlconstr =  JuMP.NonlinearConstraint[]
+    m.nlp_data.nlconstr = JuMP.NonlinearConstraint[]
 
     # This function has changed the content of m already.
     return status
@@ -210,7 +210,7 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
         copyto!(fjac, full(sparse_fjac))
     end
 
-    mcp_data = getMCPData(m)
+    mcp_data = get_MCP_data(m)
     n = length(mcp_data)
 
     # Two Indices
@@ -221,14 +221,14 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = RawIndex
     # Add constraint in the order of RawIndex
-    p = sortMCPDataperm(mcp_data)
+    p = sortperm_MCP_data(mcp_data)
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
     # lb and ub in RawIndex
-    lb, ub = getBoundsRawIndex(mcp_data)
+    lb, ub = get_bounds_in_raw_index(mcp_data)
 
     # initial values
-    initial_values = getInitialValuesRawIndex(m, mcp_data)
+    initial_values = get_initial_values_in_raw_index(m, mcp_data)
 
     # Solve the MCP using NLsolve
     # ALL inputs to NLsolve must be in RawIndex
@@ -289,7 +289,7 @@ function set_result_value(mcp_data::ComplementarityType, value::Float64)
 end
 
 function set_result_value(v::JuMP.VariableRef, value::Float64)
-    mcp_data = getMCPData(v.model)
+    mcp_data = get_MCP_data(v.model)
     for i in 1:length(mcp_data)
         if mcp_data[i].var == v
             mcp_data.result_value = value
@@ -299,7 +299,7 @@ function set_result_value(v::JuMP.VariableRef, value::Float64)
 end
 
 function result_value(v::JuMP.VariableRef)
-    mcp_data = getMCPData(v.model)
+    mcp_data = get_MCP_data(v.model)
     result_value = NaN
     for i in 1:length(mcp_data)
         if mcp_data[i].var == v
@@ -322,7 +322,7 @@ function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.Nonli
   ub = JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
   var_name = JuMP.name(var)
   new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
-  mcp_data = getMCPData(m)
+  mcp_data = get_MCP_data(m)
   push!(mcp_data, new_dimension)
 end
 
