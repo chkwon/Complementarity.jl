@@ -3,15 +3,15 @@
 # y[i] ==> esc(:y)[esc(:i)]
 # In generator like below, i is placed in parameters and i is not escaped.
 # sum(z[i] for i in 1:10) ==> sum(esc(:z)[i] for i in 1:10)
-esc_variable(ex, parameters=Vector{Symbol}(undef,0)) = ex
-function esc_variable(ex::Symbol, parameters=Vector{Symbol}(undef,0))
+esc_variable(ex, parameters=Symbol[]) = ex
+function esc_variable(ex::Symbol, parameters=Symbol[])
     if ex in parameters
         return ex
     else
         return esc(ex)
     end
 end
-function esc_variable(ex::Expr, parameters=Vector{Symbol}(undef,0))
+function esc_variable(ex::Expr, parameters=Symbol[])
     ex2 = copy(ex)
     if ex2.head == :call
         for i in 2:length(ex2.args)

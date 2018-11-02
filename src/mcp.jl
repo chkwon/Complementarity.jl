@@ -1,17 +1,17 @@
 mutable struct ComplementarityType
-    lb::Float64
+    lb::AbstractFloat
     var::JuMP.VariableRef
-    ub::Float64
+    ub::AbstractFloat
     F::JuMP.NonlinearExpression
-    raw_idx::Int
+    raw_idx::Integer
     var_name::String
     F_name::String
-    result_value::Float64
+    result_value::AbstractFloat
 end
 
 function MCPModel()
     m = JuMP.Model()
-    m.ext[:MCP] = Array{ComplementarityType}(undef, 0)
+    m.ext[:MCP] = ComplementarityType[]
     return m
 end
 
@@ -175,7 +175,8 @@ function _solve_path(m::JuMP.Model; linear=false)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr =  Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    # Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    m.nlp_data.nlconstr =  JuMP.NonlinearConstraint[]
 
     # This function has changed the content of m already.
     return status
