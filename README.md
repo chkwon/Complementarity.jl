@@ -35,7 +35,7 @@ m = MCPModel()
 @mapping(m, F, x+2)
 @complementarity(m, F, x)
 status = solveMCP(m)
-@show getvalue(x)
+@show result_value(x)
 ```
 
 
