@@ -52,17 +52,8 @@ function get_initial_values_in_raw_index(m, mcp_data)
     n = length(mcp_data)
     initial_values = Array{Float64}(undef, n)
     for i in 1:n
-        init_val = NaN
-        try
-            init_val = JuMP.start_value(mcp_data[i].var)
-        catch e
-            if isa(e, KeyError)
-                #
-            end
-        end
-        if isnan(init_val)
-            # When an initial value is not provided by 'setvalue(x, 1.0)'
-            # it is set to the lower bound
+        init_val = JuMP.start_value(mcp_data[i].var)
+        if init_val == nothing
             init_val = mcp_data[i].lb
         end
         initial_values[raw_index(mcp_data[i].var)] = init_val
@@ -175,7 +166,8 @@ function _solve_path(m::JuMP.Model; linear=false)
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
     # Array{JuMP.NonlinearConstraint,1}(undef, 0)
-    m.nlp_data.nlconstr = JuMP.NonlinearConstraint[]
+    # m.nlp_data.nlconstr = JuMP.NonlinearConstraint[]
+    m.nlp_data.nlconstr = []
 
     # This function has changed the content of m already.
     return status
@@ -277,7 +269,8 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr =  Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    # m.nlp_data.nlconstr =  Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    m.nlp_data.nlconstr =  []
 
     # This function has changed the content of m already.
     return r
