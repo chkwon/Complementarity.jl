@@ -62,8 +62,8 @@ using Test
     @show JuMP.objective_value(dempe)
     @test isapprox(JuMP.objective_value(dempe), 28.25, atol=1e-4)
 
-    xx = JuMP.result_value(x)
-    zz = JuMP.result_value(z)
-    ww = JuMP.result_value(w)
+    xx = JuMP.value(x)
+    zz = JuMP.value(z)
+    ww = JuMP.value(w)
     @test isapprox(zz - 3 + 2*zz*ww, 0, atol=1e-4)
 end

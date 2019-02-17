@@ -107,5 +107,5 @@ using Test
 
     @show JuMP.objective_value(gnash1m)
     @test isapprox(JuMP.objective_value(gnash1m), -6.11671, atol=1e-4)
-    @test isapprox( JuMP.result_value.(l)' * (L .- JuMP.result_value.(y)), 0, atol=1e-5)
+    @test isapprox( JuMP.value.(l)' * (L .- JuMP.value.(y)), 0, atol=1e-5)
 end

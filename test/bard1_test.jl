@@ -60,9 +60,9 @@ using Test
     # @macroexpand(@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
 
     JuMP.optimize!(m)
-    @show JuMP.result_value.(x)
-    @show JuMP.result_value.(y)
-    @show JuMP.result_value.(l)
+    @show JuMP.value.(x)
+    @show JuMP.value.(y)
+    @show JuMP.value.(l)
     @show JuMP.objective_value(m)
     @test isapprox(JuMP.objective_value(m), 17.0000, atol=1e-4)
 end
