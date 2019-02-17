@@ -1,6 +1,4 @@
 # isdefined(Base, :__precompile__) && __precompile__()
-using JuMP
-
 
 # https://github.com/StructJuMP/StructJuMP.jl/blob/master/src/StructJuMP.jl
 # using JuMP # To reexport, should be using (not import)
@@ -14,15 +12,21 @@ module Complementarity
 
 # package code goes here
 # importall JuMP
-using JuMP
 using Base.Meta
 using LinearAlgebra, SparseArrays
 
-import PATHSolver, NLsolve, MathProgBase
+import PATHSolver, NLsolve, MathOptInterface
+const MOI = MathOptInterface
+
+using JuMP
+macro exportall(pkg)
+    Expr(:export, names(JuMP)...)
+end
+@exportall JuMP
 
 export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP, solveLCP,
-        getvalue, setvalue,
+        result_value, set_start_value,
         @complementarity, @complements, @mapping, @variable,
         @NLexpression, @expression,
         PATHSolver

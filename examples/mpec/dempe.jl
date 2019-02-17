@@ -39,7 +39,7 @@ using Test
 
 @testset "dempe.jl" begin
 
-    dempe = Model(solver=IpoptSolver())
+    dempe = Model(with_optimizer(Ipopt.Optimizer))
 
 
     @variable(dempe, x)
@@ -53,17 +53,17 @@ using Test
     @complements(dempe, 0 >= z^2 - x,  w >= 0, simple)
 
     # Initial solutions to help reaching the optimality
-    setvalue(x, 50)
-    setvalue(z, 50)
-    setvalue(w, 1e5)
+    set_start_value(x, 50)
+    set_start_value(z, 50)
+    set_start_value(w, 1e5)
 
-    solve(dempe)
+    JuMP.optimize!(dempe)
 
-    @show getobjectivevalue(dempe)
-    @test isapprox(getobjectivevalue(dempe), 28.25, atol=1e-4)
+    @show JuMP.objective_value(dempe)
+    @test isapprox(JuMP.objective_value(dempe), 28.25, atol=1e-4)
 
-    xx = getvalue(x)
-    zz = getvalue(z)
-    ww = getvalue(w)
+    xx = JuMP.value(x)
+    zz = JuMP.value(z)
+    ww = JuMP.value(w)
     @test isapprox(zz - 3 + 2*zz*ww, 0, atol=1e-4)
 end

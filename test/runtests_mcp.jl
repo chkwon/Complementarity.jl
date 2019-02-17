@@ -23,19 +23,19 @@ using Complementarity, Test
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
     status = solveMCP(m, linear=true)
 
-    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
+    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 
     status = solveMCP(m)
 
-    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
+    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 
@@ -68,10 +68,10 @@ println("------------------------------------------------------------------")
 
     status = solveMCP(m)
 
-    z = [getvalue(x1), getvalue(x2), getvalue(x3), getvalue(x4)]
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
+    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 end
@@ -100,14 +100,13 @@ println("------------------------------------------------------------------")
 
     PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
-
     status = solveMCP(m)
 
-    z = getvalue(myvariablename)
-    Fz = getvalue(myconst)
+    z = result_value.(myvariablename)
+    # Fz = result_value(myconst)
 
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z[1], 2.8)
     @test isapprox(z[2], 0.0)
@@ -144,8 +143,8 @@ println("------------------------------------------------------------------")
 
     status = solveMCP(m)
 
-    z = getvalue(x)
-    # Fz = getvalue(F) # currently produces an error
+    z = result_value.(x)
+    # Fz = result_value(F) # currently produces an error
 
     @show z
     # @show Fz
@@ -179,19 +178,19 @@ println("------------------------------------------------------------------")
     @complementarity(m, F3, x[3])
     @complementarity(m, F4, x[4])
 
-    setvalue(x[1], 1.25)
-    setvalue(x[2], 0.)
-    setvalue(x[3], 0.)
-    setvalue(x[4], 0.5)
+    set_start_value(x[1], 1.25)
+    set_start_value(x[2], 0.)
+    set_start_value(x[3], 0.)
+    set_start_value(x[4], 0.5)
 
     status = solveMCP(m)
     @show status
 
-    z = getvalue(x)
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    z = result_value.(x)
+    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
 
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z[1], 1.22474, atol=1e-4)
     @test isapprox(z[2], 0.0, atol=1e-4)
@@ -199,19 +198,19 @@ println("------------------------------------------------------------------")
     @test isapprox(z[4], 0.5, atol=1e-4)
 
 
-    setvalue(x[1], 1.19)
-    setvalue(x[2], 0.2)
-    setvalue(x[3], 0.1)
-    setvalue(x[4], 0.49)
+    set_start_value(x[1], 1.19)
+    set_start_value(x[2], 0.2)
+    set_start_value(x[3], 0.1)
+    set_start_value(x[4], 0.49)
 
     status = solveMCP(m)
     @show status
 
-    z = getvalue(x)
-    Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+    z = result_value.(x)
+    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
 
     @show z
-    @show Fz
+    # @show Fz
 
     @test isapprox(z[1], 1.22474, atol=1e-4)
     @test isapprox(z[2], 0.0, atol=1e-4)

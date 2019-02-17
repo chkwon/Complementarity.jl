@@ -33,7 +33,7 @@ using Test
 
 @testset "bard1_test.jl" begin
 
-    m = Model(solver=IpoptSolver())
+    m = Model(with_optimizer(Ipopt.Optimizer))
     # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
 
     @variable(m, x>=0)
@@ -59,10 +59,10 @@ using Test
     @macroexpand(@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
     # @macroexpand(@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
 
-    solve(m)
-    @show getvalue(x)
-    @show getvalue(y)
-    @show getvalue(l)
-    @show getobjectivevalue(m)
-    @test isapprox(getobjectivevalue(m), 17.0000, atol=1e-4)
+    JuMP.optimize!(m)
+    @show JuMP.value.(x)
+    @show JuMP.value.(y)
+    @show JuMP.value.(l)
+    @show JuMP.objective_value(m)
+    @test isapprox(JuMP.objective_value(m), 17.0000, atol=1e-4)
 end

@@ -1,70 +1,67 @@
 mutable struct ComplementarityType
-    lb::Float64
-    var::JuMP.Variable
-    ub::Float64
+    lb::AbstractFloat
+    var::JuMP.VariableRef
+    ub::AbstractFloat
     F::JuMP.NonlinearExpression
-    lin_idx::Int
+    raw_idx::Integer
     var_name::String
     F_name::String
+    result_value::AbstractFloat
 end
 
 function MCPModel()
-    m = Model()
-    m.ext[:MCP] = Array{ComplementarityType}(undef, 0)
+    m = JuMP.Model()
+    m.ext[:MCP] = ComplementarityType[]
     return m
 end
 
-function getMCPData(m::Model)
+function get_MCP_data(m::JuMP.Model)
     if haskey(m.ext, :MCP)
         return m.ext[:MCP]::Array
     else
-        error("The 'getMCPData' function is only for MCP models as in ComplementarityType.jl")
+        error("The 'get_MCP_data' function is only for MCP models as in ComplementarityType.jl")
     end
 end
 
+raw_index(v::JuMP.VariableRef) = JuMP.index(v).value
 
-function getBoundsLinearIndex(mcp_data)
+function get_bounds_in_raw_index(mcp_data)
     n = length(mcp_data)
     lb = zeros(n)
     ub = ones(n)
     for i in 1:n
-        lb[linearindex(mcp_data[i].var)] = mcp_data[i].lb
-        ub[linearindex(mcp_data[i].var)] = mcp_data[i].ub
+        lb[raw_index(mcp_data[i].var)] = mcp_data[i].lb
+        ub[raw_index(mcp_data[i].var)] = mcp_data[i].ub
     end
     return lb, ub
 end
 
 
-function getNamesLinearIndex(mcp_data)
+function get_names_in_raw_index(mcp_data)
     n = length(mcp_data)
     var_name = Array{String}(undef, n)
     F_name = Array{String}(undef, n)
     for i in 1:n
-        var_name[linearindex(mcp_data[i].var)] = mcp_data[i].var_name
-        F_name[linearindex(mcp_data[i].var)] = mcp_data[i].F_name
+        var_name[raw_index(mcp_data[i].var)] = mcp_data[i].var_name
+        F_name[raw_index(mcp_data[i].var)] = mcp_data[i].F_name
     end
     return var_name, F_name
 end
 
-function getInitialValuesLinearIndex(m, mcp_data)
+function get_initial_values_in_raw_index(m, mcp_data)
     n = length(mcp_data)
     initial_values = Array{Float64}(undef, n)
     for i in 1:n
-
-        # init_val = getvalue(mcp_data[i].var) # This throws a warning when it is not set.
-        init_val = m.colVal[linearindex(mcp_data[i].var)]
-        if isnan(init_val)
-            # When an initial value is not provided by 'setvalue(x, 1.0)'
-            # it is set to the lower bound
+        init_val = JuMP.start_value(mcp_data[i].var)
+        if init_val == nothing
             init_val = mcp_data[i].lb
         end
-        initial_values[linearindex(mcp_data[i].var)] = init_val
+        initial_values[raw_index(mcp_data[i].var)] = init_val
     end
     return initial_values
 end
 
-# Placeholder for multiple methods in the future
-function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
+function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false)
     if solver == :PATH
         return _solve_path(m, linear=linear)
     elseif solver == :NLsolve
@@ -72,177 +69,163 @@ function solveMCP(m::Model; solver=:PATH, method=:trust_region, linear=false)
     end
 end
 
-function solveLCP(m::Model; solver=:PATH, method=:trust_region)
+function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
     solveMCP(m, solver=solver, method=method, linear=true)
 end
 
-function sortMCPDataperm(obj::Array{ComplementarityType,1})
+function sortperm_MCP_data(obj::Array{ComplementarityType,1})
     n = length(obj)
     ref = Array{Int}(undef, n)
     for i in 1:n
-        ref[i] = obj[i].lin_idx
+        ref[i] = obj[i].raw_idx
     end
 
     return sortperm(ref)
 end
 
 # Using PATHSolver
-function _solve_path(m::Model; linear=false)
+function _solve_path(m::JuMP.Model; linear=false)
 
     function myfunc(z)
-        # z is in LindexIndex, passed from PATHSolver
-
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
-        MathProgBase.initialize(d, [:Grad])
+        MOI.initialize(d, [:Grad])
         F_val = zeros(n)
-        MathProgBase.eval_g(d, F_val, z)
+        MOI.eval_constraint(d, F_val, z)
 
-        # F_val also should be in LindexIndex
+        # F_val also should be in RawIndex
         # since it is the order in which constraints are added
 
         return F_val
     end
 
     function myjac(z)
-        # z is in LindexIndex, passed from PATHSolver
-
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
-        MathProgBase.initialize(d, [:Grad])
-        I,J = MathProgBase.jac_structure(d)
-        jac_val = zeros(size(J))
-        MathProgBase.eval_jac_g(d, jac_val, z)
+        MOI.initialize(d, [:Grad])
+        J_struct = MOI.jacobian_structure(d)
 
-        # return matrix also should be in LindexIndex
+        I = first.(J_struct)
+        J = last.(J_struct)
+
+        jac_val = zeros(length(J))
+        MOI.eval_constraint_jacobian(d, jac_val, z)
+
+        # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
 
         return sparse(I, J, jac_val)
     end
 
-    mcp_data = getMCPData(m)
+    mcp_data = get_MCP_data(m)
     n = length(mcp_data)
 
     # Two Indices
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
-    # LinearIndex: the order used in JuMP / MathProgBase
+    # RawIndex: the order used in JuMP / MathOptInteface
 
     # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
-    # i = LinearIndex
-    # Add constraint in the order of LinearIndex
-    p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
+    # i = RawIndex
+    # Add constraint in the order of RawIndex
+    p = sortperm_MCP_data(mcp_data)
+    JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
-    # lb and ub in LinearIndex
-    lb, ub = getBoundsLinearIndex(mcp_data)
+    # lb and ub in RawIndex
+    lb, ub = get_bounds_in_raw_index(mcp_data)
 
-    # var_name, F_name in LinearIndex
-    var_name, F_name = getNamesLinearIndex(mcp_data)
+    # var_name, F_name in RawIndex
+    var_name, F_name = get_names_in_raw_index(mcp_data)
 
     # initial values
-    initial_values = getInitialValuesLinearIndex(m, mcp_data)
+    initial_values = get_initial_values_in_raw_index(m, mcp_data)
 
     # Solve the MCP using PATHSolver
-    # ALL inputs to PATHSolver must be in LinearIndex
+    # ALL inputs to PATHSolver must be in RawIndex
     if linear==true
         J0 = myjac(zeros(size(lb)))
         Jr = myjac(100*rand(Float64, size(ub)))
 
-        if norm(J0-Jr, 1) > 10e-8
+        if !isapprox(J0, Jr)
             error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
         end
         status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
     else
         status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
     end
-
-    # z, f are in LinearIndex
+    # z, f are in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
     for i in 1:n
-        setvalue(mcp_data[i].var, z[mcp_data[i].lin_idx])
+        # setvalue(mcp_data[i].var, z[mcp_data[i].raw_idx])
+        # MOI.set(m, MOI.VariablePrimal(), mcp_data[i].var, z[mcp_data[i].raw_idx])
+        # mcp_data[i].result_value = z[mcp_data[i].raw_idx]
+        set_result_value(mcp_data[i], z[mcp_data[i].raw_idx])
     end
-
-
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(undef, 0)
-
+    # Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    # m.nlp_data.nlconstr = JuMP.NonlinearConstraint[]
+    m.nlp_data.nlconstr = []
 
     # This function has changed the content of m already.
     return status
 end
 
 
-function _solve_nlsolve(m::Model; method=:trust_region)
+function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     function myfunc!(fvec, z)
-        # z is in LindexIndex, passed from PATHSolver
-
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
-        MathProgBase.initialize(d, [:Grad])
+        MOI.initialize(d, [:Grad])
         F_val = zeros(n)
-        MathProgBase.eval_g(d, F_val, z)
+        MOI.eval_constraint(d, F_val, z)
 
         copyto!(fvec, F_val)
-
-        # F_val also should be in LindexIndex
-        # since it is the order in which constraints are added
     end
 
     function myjac!(fjac, z)
-        # z is in LindexIndex, passed from PATHSolver
-
+        # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
-        MathProgBase.initialize(d, [:Grad])
-        I,J = MathProgBase.jac_structure(d)
-        jac_val = zeros(size(J))
-        MathProgBase.eval_jac_g(d, jac_val, z)
+        MOI.initialize(d, [:Grad])
+        J_struct = MOI.jacobian_structure(d)
 
-        # return matrix also should be in LindexIndex
-        # since it is the order in which constraints are added
+        I = first.(J_struct)
+        J = last.(J_struct)
+
+        jac_val = zeros(length(J))
+        MOI.eval_constraint_jacobian(d, jac_val, z)
 
         sparse_fjac = sparse(I, J, jac_val)
-        copy!(fjac, full(sparse_fjac))
+        copyto!(fjac, full(sparse_fjac))
     end
 
-    mcp_data = getMCPData(m)
+    mcp_data = get_MCP_data(m)
     n = length(mcp_data)
 
     # Two Indices
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
-    # LinearIndex: the order used in JuMP / MathProgBase
+    # RawIndex: the order used in JuMP / MathProgBase
 
     # Declaring MCP mapping F as constraints
     # in order to query Jacobian using AutoDiff thru MathProgBase
-    # i = LinearIndex
-    # Add constraint in the order of LinearIndex
-    p = sortMCPDataperm(mcp_data)
-    @NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
+    # i = RawIndex
+    # Add constraint in the order of RawIndex
+    p = sortperm_MCP_data(mcp_data)
+    JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
 
-    # lb and ub in LinearIndex
-    lb, ub = getBoundsLinearIndex(mcp_data)
+    # lb and ub in RawIndex
+    lb, ub = get_bounds_in_raw_index(mcp_data)
 
-    # setting initial_z
-    initial_z = (lb+ub) / 2
-    for i = 1:length(initial_z)
-        if initial_z[i] == Inf
-            initial_z[i] = lb[i]
-        end
-    end
-
-    # If the user has provided any initial_z, use it.
-    for i in 1:n
-        gv = JuMP._getValue(mcp_data[i].var)
-        if !isnan(gv)
-          initial_z[mcp_data[i].lin_idx] = gv
-        end
-    end
+    # initial values
+    initial_values = get_initial_values_in_raw_index(m, mcp_data)
 
     # Solve the MCP using NLsolve
-    # ALL inputs to NLsolve must be in LinearIndex
+    # ALL inputs to NLsolve must be in RawIndex
 
-    r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_z, method = method,
+    r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_values, method = method,
         iterations = 10_000)
     # function mcpsolve{T}(f,
     #                   j,
@@ -262,7 +245,7 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     #                   autoscale = true,
     #                   inplace = true)
 
-    # julia> fieldnames(r)
+    # julia> fieldnames(typeof(r))
     # 12-element Array{Symbol,1}:
     #  :method
     #  :initial_x
@@ -278,62 +261,61 @@ function _solve_nlsolve(m::Model; method=:trust_region)
     #  :g_calls
 
 
-    # r.zero is in LinearIndex
-
-    # After solving set the values in m::JuMP.Model to the solution obtained.
+    # r.zero is in RawIndex
     for i in 1:n
-        setvalue(mcp_data[i].var, r.zero[mcp_data[i].lin_idx])
+        set_result_value(mcp_data[i], r.zero[mcp_data[i].raw_idx])
     end
 
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlpdata.nlconstr = Array{JuMP.GenericRangeConstraint{JuMP.NonlinearExprData},1}(undef, 0)
-
-
+    # m.nlp_data.nlconstr =  Array{JuMP.NonlinearConstraint,1}(undef, 0)
+    m.nlp_data.nlconstr =  []
 
     # This function has changed the content of m already.
     return r
 end
 
 
+function set_result_value(mcp_data::ComplementarityType, value::Float64)
+    mcp_data.result_value = value
+end
 
+function set_result_value(v::JuMP.VariableRef, value::Float64)
+    mcp_data = get_MCP_data(v.model)
+    for i in 1:length(mcp_data)
+        if mcp_data[i].var == v
+            mcp_data.result_value = value
+            break
+        end
+    end
+end
+
+function result_value(v::JuMP.VariableRef)
+    mcp_data = get_MCP_data(v.model)
+    result_value = NaN
+    for i in 1:length(mcp_data)
+        if mcp_data[i].var == v
+            result_value = mcp_data[i].result_value
+            break
+        end
+    end
+    return result_value
+end
 
 
 
 # https://stackoverflow.com/questions/50084877/how-to-alias-a-macro-in-julia#comment87277306_50085297
 @eval const $(Symbol("@mapping")) = $(Symbol("@NLexpression"))
 
-# macro mapping(args...)
-#   if length(args) != 3
-#     error("3 arguments are required in @mapping(...)")
-#   end
-#   quote
-#     @NLexpression $(args...)
-#   end
-# end
 
-# macro mapping(args...)
-#   if length(args) != 3
-#     error("3 arguments are required in @mapping(...)")
-#   end
-#
-#   m = args[1]
-#   name = args[2]
-#   ex = args[3]
-#
-#   expression = Expr(:macrocall, Symbol("@NLexpression"), m, name, ex)
-#
-#   return esc(expression)
-# end
+function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.NonlinearExpression, F_name::String)
 
-
-function add_complementarity(m::JuMP.Model, var::JuMP.Variable, F::JuMP.NonlinearExpression, F_name::String)
-  lb = getlowerbound(var)
-  ub = getupperbound(var)
-  var_name = getname(var)
-  new_dimension = ComplementarityType(lb, var, ub, F, linearindex(var), var_name, F_name)
-  mcp_data = getMCPData(m)
+  lb = JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
+  ub = JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
+  var_name = JuMP.name(var)
+  new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
+  mcp_data = get_MCP_data(m)
   push!(mcp_data, new_dimension)
 end
 
@@ -347,14 +329,13 @@ macro complementarity(m, F, var)
   var = esc(var)
 
   quote
-
-    if isa($F, JuMP.JuMPArray) || isa($F, Array)
-      @assert length($F) == length($var)
-    end
+    # if isa($F, JuMP.JuMPArray) || isa($F, Array)
+    #   @assert length($F) == length($var)
+    # end
 
     # when var is a single JuMP variable
-    if isa($var, JuMP.Variable)
-      ex_var = Meta.parse(getname($var))
+    if isa($var, JuMP.VariableRef)
+      ex_var = Meta.parse(JuMP.name($var))
       ex_F = Meta.parse($F_base_name)
 
       if typeof(ex_var) == Symbol || typeof(ex_F) == Symbol
@@ -374,12 +355,9 @@ macro complementarity(m, F, var)
       end
 
     # when var is a single dimensional Array of JuMP.Variable
-    elseif isa($var, Array{JuMP.Variable, 1})
-
-      idx_list = 1:length($var)
-
-      for idx in idx_list
-        idx_name = idx
+    elseif isa($var, Array{JuMP.VariableRef})
+      for idx in CartesianIndices(size($var))
+        idx_name = idx.I
         F_name = string($F_base_name, "[", idx_name, "]")
         var_idx = $var[idx]
         F_idx = $F[idx]
@@ -390,8 +368,8 @@ macro complementarity(m, F, var)
     else # isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1 or > 1
       # when var is a multi-dimensional JuMP variable array
       ex = :(Base.product())
-      for i in 1:length($var.indexsets)
-        push!(ex.args, $var.indexsets[i])
+      for i in 1:length($var.axes)
+        push!(ex.args, $var.axes[i])
       end
       idx_list = collect(eval(ex))
 
