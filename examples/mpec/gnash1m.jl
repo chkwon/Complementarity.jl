@@ -104,8 +104,8 @@ using Test
     end
 
     # Initial solutions to help reaching the optimality
-    set_start_value(y, [11, 19, 20, 20])
-    set_start_value(l, [0, 0, -3, -5])
+    set_start_value.(y, [11, 19, 20, 20])
+    set_start_value.(l, [0, 0, -3, -5])
     set_start_value(x, 5)
     set_start_value(Q, 70)
 
