@@ -103,7 +103,24 @@ using Test
         @complements(gnash1m, l[i], 0 <= y[i] <= L, smooth)
     end
 
+    # Initial solutions to help reaching the optimality
+    set_start_value(y, [11, 19, 20, 20])
+    set_start_value(l, [0, 0, -3, -5])
+    set_start_value(x, 5)
+    set_start_value(Q, 70)
+
     JuMP.optimize!(gnash1m)
+
+    @show JuMP.value.(y)
+    @show JuMP.value.(l)
+    @show JuMP.value(x)
+    @show JuMP.value(Q)
+
+    # JuMP.value.(y) = [11.3327, 19.5003, 20.0, 20.0]
+    # JuMP.value.(l) = [-1.35686e-10, -9.7489e-9, -2.51077, -5.18082]
+    # JuMP.value(x) = 6.369341692612341
+    # JuMP.value(Q) = 77.20235592852553
+    # JuMP.objective_value(gnash1m) = -6.116708234438121
 
     @show JuMP.objective_value(gnash1m)
     @test isapprox(JuMP.objective_value(gnash1m), -6.11671, atol=1e-4)
