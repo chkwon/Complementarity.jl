@@ -1,3 +1,6 @@
+**NOTE** `JuMP.jl` `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). It is unclear which solvers support optimization problems with complementarity constraints (or MPEC) yet. For solving Mixed Complementarity Problems via the PATH solver, watch [PATH.jl](https://github.com/odow/PATH.jl), which provides a Julia native access to the PATH solver and integration with JuMP.jl. 
+
+
 # Complementarity.jl
 
 <!-- [![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.5.svg)](http://pkg.julialang.org/?pkg=Complementarity)
