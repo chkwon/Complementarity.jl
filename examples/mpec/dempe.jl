@@ -39,7 +39,7 @@ using Test
 
 @testset "dempe.jl" begin
 
-    dempe = Model(with_optimizer(Ipopt.Optimizer))
+    dempe = Model(Ipopt.Optimizer)
 
 
     @variable(dempe, x)
