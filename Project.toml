@@ -7,6 +7,7 @@ JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 PATHSolver = "f5f7c340-0bb3-5c69-969a-41884d311d1b"
 NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
 MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 JuMP = "0.21"
