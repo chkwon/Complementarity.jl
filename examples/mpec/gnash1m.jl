@@ -86,7 +86,7 @@ using Test
 
     gg = 5000^(1/g)
 
-    gnash1m = Model(with_optimizer(Ipopt.Optimizer))
+    gnash1m = Model(Ipopt.Optimizer)
 
     @variable(gnash1m, 0 <= x <= L)
     @variable(gnash1m, y[1:4])

@@ -26,14 +26,11 @@
 
 using JuMP, Complementarity
 using Ipopt
-# using NLopt
-
 using Test
 
 
 # @testset "bard1.jl" begin
-    bard1 = Model(with_optimizer(Ipopt.Optimizer))
-    # m = Model(solver=NLoptSolver(algorithm=:LD_SLSQP))
+    bard1 = Model(Ipopt.Optimizer)
 
     @variable(bard1, x>=0)
     @variable(bard1, y>=0)
