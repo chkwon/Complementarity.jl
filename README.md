@@ -1,15 +1,9 @@
-**NOTE** `JuMP.jl` `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). It is unclear which solvers support optimization problems with complementarity constraints (or MPEC) yet. For solving Mixed Complementarity Problems via the PATH solver, watch [PATH.jl](https://github.com/odow/PATH.jl), which provides a Julia native access to the PATH solver and integration with JuMP.jl. 
+**NOTE** `JuMP.jl` `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). It is unclear which solvers support optimization problems with complementarity constraints (or MPEC) yet. For solving Mixed Complementarity Problems via the PATH solver, watch [PATH.jl](https://github.com/odow/PATH.jl), which provides a Julia native access to the PATH solver and integration with JuMP.jl.
 
 
 # Complementarity.jl
 
-<!-- [![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.5.svg)](http://pkg.julialang.org/?pkg=Complementarity)
-[![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.6.svg)](http://pkg.julialang.org/?pkg=Complementarity)
-[![Complementarity](http://pkg.julialang.org/badges/Complementarity_0.7.svg)](http://pkg.julialang.org/?pkg=Complementarity) -->
-
-
 [![Build Status](https://travis-ci.org/chkwon/Complementarity.jl.svg?branch=master)](https://travis-ci.org/chkwon/Complementarity.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/pcb5nb5tsstueq1f?svg=true)](https://ci.appveyor.com/project/chkwon/complementarity-jl)
 [![Coverage Status](https://coveralls.io/repos/github/chkwon/Complementarity.jl/badge.svg?branch=master)](https://coveralls.io/github/chkwon/Complementarity.jl?branch=master)
 
 This package provides modeling language for (1) mixed complementarity problems (MCP) and (2) mathematical programs with equilibrium problems (MPEC).
