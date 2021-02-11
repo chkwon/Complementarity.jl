@@ -56,7 +56,7 @@ using Test
     @complementarity(m, fxdemand, p)
 
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     @show result_value.(x)
     @show result_value.(w)

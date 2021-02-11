@@ -56,7 +56,7 @@ using Test
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     @show result_value.(x)
     @show result_value.(w)
@@ -102,15 +102,15 @@ end
     @variable(m, x[1:2, 1:3] >= 0)
 
     @NLexpression(m, c[i in 1:2, j in 1:3], f * d[i,j] / 1000)
-    @mapping(m, profit[i in 1:2, j in 1:3],    w[i] + c[i,j] - p[j])
-    @mapping(m, supply[i in 1:2],                  a[i] - sum(x[i,j] for j in markets))
-    @mapping(m, fxdemand[j in 1:3],               sum(x[i,j] for i in plants) - b[j])
+    @mapping(m, profit[i in 1:2, j in 1:3], w[i] + c[i,j] - p[j])
+    @mapping(m, supply[i in 1:2], a[i] - sum(x[i,j] for j in markets))
+    @mapping(m, fxdemand[j in 1:3], sum(x[i,j] for i in plants) - b[j])
 
     @complementarity(m, profit, x)
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 
     @show result_value.(x)

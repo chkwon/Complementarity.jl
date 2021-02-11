@@ -56,7 +56,7 @@ items = 1:4
 @complementarity(m, F, x)
 
 
-status = solveMCP(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP!(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 z = result_value(x)
 ````
@@ -84,7 +84,7 @@ This macro matches each element of `F` and the complementing element of `x`.
 
 
 ```julia
-solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 ```
 This solves the MCP and stores the solution inside `m`, which can be accessed by `result_value(x)`.
 Keyword arguments are options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
@@ -96,7 +96,7 @@ Keyword arguments are options of the PATH Solver. See the [list of options](http
 
 When your problem is an LCP, then you can specify it. All functions defined by `@mapping` must be linear.
 ```julia
-solveMCP(m, linear=true)
+solveMCP!(m, linear=true)
 ```
 This prevents PATHSolver from evaluating the Jacobian matrix at every iteration.
 
@@ -145,7 +145,7 @@ m = MCPModel()
 @complementarity(m, supply, w)
 @complementarity(m, fxdemand, p)
 
-status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 @show result_value.(x)
 @show result_value.(w)
@@ -230,7 +230,7 @@ PATHSolver.@enum(
 
 ## Example 3
 
-We can specify `NLsolve` as the solver by providing `solver=:NLsolve` to `solveMCP()`.
+We can specify `NLsolve` as the solver by providing `solver=:NLsolve` to `solveMCP!()`.
 ```julia
 using Complementarity
 
@@ -256,7 +256,7 @@ setvalue(x[2], 0.)
 setvalue(x[3], 0.)
 setvalue(x[4], 0.5)
 
-status = solveMCP(m, solver=:NLsolve)
+status = solveMCP!(m, solver=:NLsolve)
 @show status
 
 z = result_value(x)

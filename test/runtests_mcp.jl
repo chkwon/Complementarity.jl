@@ -20,22 +20,15 @@ using Complementarity, Test
     @complementarity(m, F3, x3)
     @complementarity(m, F2, x2)
 
-    status = solveMCP(m; linear=true, convergence_tolerance=1e-8, output="no", time_limit=3600)
-
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="no", time_limit=3600)
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
-    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    # @show Fz
-
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
-
-    status = solveMCP(m)
-
+    
+    
+    status = solveMCP!(m)
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
-    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    # @show Fz
-
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 
 end
@@ -63,13 +56,9 @@ println("------------------------------------------------------------------")
     @complementarity(m, F1, x1)
     @complementarity(m, F4, x4)
 
-    status = solveMCP(m, convergence_tolerance=1e-8, output="yes", time_limit=3600)
-
+    status = solveMCP!(m, convergence_tolerance=1e-8, output="yes", time_limit=3600)
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
-    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
     @show z
-    # @show Fz
-
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 end
 
@@ -95,18 +84,9 @@ println("------------------------------------------------------------------")
     @mapping(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
     @complementarity(m, myconst, myvariablename)
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
-
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
     z = result_value.(myvariablename)
-    # Fz = result_value(myconst)
-
-    @show z
-    # @show Fz
-
-    @test isapprox(z[1], 2.8)
-    @test isapprox(z[2], 0.0)
-    @test isapprox(z[3], 0.8)
-    @test isapprox(z[4], 1.2)
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
 end
 
 println("------------------------------------------------------------------")
@@ -133,18 +113,10 @@ println("------------------------------------------------------------------")
     @mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
     @complementarity(m, F, x)
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="no", time_limit=3600)
-
+    status = solveMCP!(m; convergence_tolerance=1e-8, output="no", time_limit=3600)
     z = result_value.(x)
-    # Fz = result_value(F) # currently produces an error
+    @test isapprox(z.data, [2.8, 0.0, 0.8, 1.2])
 
-    @show z
-    # @show Fz
-
-    @test isapprox(z[1], 2.8)
-    @test isapprox(z[2], 0.0)
-    @test isapprox(z[3], 0.8)
-    @test isapprox(z[4], 1.2)
 end
 
 
@@ -175,19 +147,13 @@ println("------------------------------------------------------------------")
     set_start_value(x[3], 0.)
     set_start_value(x[4], 0.5)
 
-    status = solveMCP(m)
+    status = solveMCP!(m)
     @show status
 
     z = result_value.(x)
-    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
-
     @show z
-    # @show Fz
 
-    @test isapprox(z[1], 1.22474, atol=1e-4)
-    @test isapprox(z[2], 0.0, atol=1e-4)
-    @test isapprox(z[3], 0.0, atol=1e-4)
-    @test isapprox(z[4], 0.5, atol=1e-4)
+    @test isapprox(z.data, [1.22474, 0.0, 0.0, 0.5]; atol=1e-4)
 
 
     set_start_value(x[1], 1.19)
@@ -195,19 +161,15 @@ println("------------------------------------------------------------------")
     set_start_value(x[3], 0.1)
     set_start_value(x[4], 0.49)
 
-    status = solveMCP(m)
+    status = solveMCP!(m)
     @show status
 
     z = result_value.(x)
-    # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
 
     @show z
-    # @show Fz
 
-    @test isapprox(z[1], 1.22474, atol=1e-4)
-    @test isapprox(z[2], 0.0, atol=1e-4)
-    @test isapprox(z[3], 0.0, atol=1e-4)
-    @test isapprox(z[4], 0.5, atol=1e-4)
+    @test isapprox(z.data, [1.22474, 0.0, 0.0, 0.5]; atol=1e-4)
+
 end
 
 

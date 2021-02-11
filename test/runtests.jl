@@ -13,14 +13,12 @@ using Complementarity
         for i=1:2, j=1:3, k=1:4, l=1:5
             @complementarity(m, F[i,j,k,l], x[i,j,k,l])
         end
-        status = solveMCP(m)
+        status = solveMCP!(m)
     end
 
     include("hhoeschle_mcp1.jl")
 
     include("runtests_mcp.jl")
-
-    # include("runtests_lcp.jl")
 
     include("runtests_mcp_nlsolve.jl")
 

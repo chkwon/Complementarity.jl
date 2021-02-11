@@ -32,7 +32,7 @@ m = MCPModel()
 @variable(m, x >= 0)
 @mapping(m, F, x+2)
 @complementarity(m, F, x)
-status = solveMCP(m)
+status = solveMCP!(m)
 @show result_value(x)
 ```
 

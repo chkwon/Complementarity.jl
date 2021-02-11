@@ -61,17 +61,14 @@ function get_initial_values_in_raw_index(m, mcp_data)
     return initial_values
 end
 
-function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false, kwargs...)
+function solveMCP!(m::JuMP.Model; solver=:PATH, method=:trust_region, kwargs...)
     if solver == :PATH
-        return _solve_path(m, linear=linear; kwargs...)
+        return _solve_path!(m; kwargs...)
     elseif solver == :NLsolve
-        return _solve_nlsolve(m, method=method)
+        return _solve_nlsolve!(m, method=method)
     end
 end
 
-function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
-    solveMCP(m, solver=solver, method=method, linear=true)
-end
 
 function sortperm_MCP_data(obj::Array{ComplementarityType,1})
     n = length(obj)
@@ -84,19 +81,32 @@ function sortperm_MCP_data(obj::Array{ComplementarityType,1})
 end
 
 # Using PATHSolver
-function _solve_path(m::JuMP.Model; linear=false, kwargs...)
+function _solve_path!(m::JuMP.Model; kwargs...)
+    d = JuMP.NLPEvaluator(m)
 
     function myfunc(n::Cint, z::Vector{Cdouble}, F_val::Vector{Cdouble})
         @assert n == length(z) == length(F_val)
         # z is in RawIndex, passed from PATHSolver
-        d = JuMP.NLPEvaluator(m)
-        MOI.initialize(d, [:Grad])
+        MOI.initialize(d, [:Jac])
         MOI.eval_constraint(d, F_val, z)
-
         # F_val also should be in RawIndex
         # since it is the order in which constraints are added
-
         return Cint(0)
+    end
+
+    function j_eval(z::Vector{Cdouble})
+        MOI.initialize(d, [:Jac])
+        J_struct = MOI.jacobian_structure(d)
+        I = first.(J_struct)
+        J = last.(J_struct)
+
+        jac_val = zeros(length(J))
+        MOI.eval_constraint_jacobian(d, jac_val, z)
+        # return matrix also should be in RawIndex
+        # since it is the order in which constraints are added
+
+        Jac = sparse(I, J, jac_val)  # SparseMatrixCSC
+        return Jac
     end
 
     function myjac(        
@@ -110,21 +120,9 @@ function _solve_path(m::JuMP.Model; linear=false, kwargs...)
     )
         @assert n == length(z) == length(col_start) == length(col_len)
         @assert nnz == length(row) == length(data)    
-        
         # z is in RawIndex, passed from PATHSolver
-        d = JuMP.NLPEvaluator(m)
-        MOI.initialize(d, [:Grad])
-        J_struct = MOI.jacobian_structure(d)
 
-        I = first.(J_struct)
-        J = last.(J_struct)
-
-        jac_val = zeros(length(J))
-        MOI.eval_constraint_jacobian(d, jac_val, z)
-        # return matrix also should be in RawIndex
-        # since it is the order in which constraints are added
-
-        Jac = sparse(I, J, jac_val)  # SparseMatrixCSC
+        Jac = j_eval(z)  # SparseMatrixCSC
 
         # Pouring Jac::SparseMatrixCSC to the format used in PATH
         for i in 1:n
@@ -166,41 +164,27 @@ function _solve_path(m::JuMP.Model; linear=false, kwargs...)
     # initial values
     initial_values = get_initial_values_in_raw_index(m, mcp_data)
 
+    # overestimating number of nonzeros in Jacobian
+    nnz = max( SparseArrays.nnz(j_eval(lb)), SparseArrays.nnz(j_eval(ub)) )
+    nnz = max( nnz, SparseArrays.nnz(j_eval(initial_values)) )
+    for i in 1:2
+        z_rand = max.(lb, min.(ub, rand(Float64, n)))
+        nnz_rand = SparseArrays.nnz(j_eval(z_rand))
+        nnz = max( nnz, nnz_rand )
+    end
+    nnz = min( 2 * nnz, n^2 )
+
     # Solve the MCP using PATHSolver
-    # ALL inputs to PATHSolver must be in RawIndex
-    # if linear==true
-    #     J0 = myjac(zeros(size(lb)))
-    #     Jr = myjac(100*rand(Float64, size(ub)))
-
-    #     if !isapprox(J0, Jr)
-    #         error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
-    #     end
-    #     # status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
-
-    #     status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
-    #     f = myfunc(z)
-    # else
-    #     # status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
-    #     # MCP_Termination(status), X, info 
-    #     status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
-    #     f = myfunc(z)
-    # end
-
-    status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
-    # z, f are in RawIndex
+    status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; nnz=nnz, kwargs...)
+    # z is in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
     for i in 1:n
-        # setvalue(mcp_data[i].var, z[mcp_data[i].raw_idx])
-        # MOI.set(m, MOI.VariablePrimal(), mcp_data[i].var, z[mcp_data[i].raw_idx])
-        # mcp_data[i].result_value = z[mcp_data[i].raw_idx]
         set_result_value(mcp_data[i], z[mcp_data[i].raw_idx])
     end
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    # Array{JuMP.NonlinearConstraint,1}(undef, 0)
-    # m.nlp_data.nlconstr = JuMP.NonlinearConstraint[]
     m.nlp_data.nlconstr = []
 
     # This function has changed the content of m already.
@@ -208,7 +192,7 @@ function _solve_path(m::JuMP.Model; linear=false, kwargs...)
 end
 
 
-function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
+function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
 
     function myfunc!(fvec, z)
         # z is in RawIndex, passed from PATHSolver
@@ -303,7 +287,6 @@ function _solve_nlsolve(m::JuMP.Model; method=:trust_region)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    # m.nlp_data.nlconstr =  Array{JuMP.NonlinearConstraint,1}(undef, 0)
     m.nlp_data.nlconstr =  []
 
     # This function has changed the content of m already.
