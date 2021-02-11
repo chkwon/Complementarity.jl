@@ -56,17 +56,14 @@ using Test
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-
-
-    status = solveMCP(m)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     @show result_value.(x)
     @show result_value.(w)
     @show result_value.(p)
 
     @show status
-    @test status == :Solved
+    @test status == PATHSolver.MCP_Solved
     @test isapprox(result_value(x[1,2]), 300.0)
     @test isapprox(result_value(p[3]),  0.126)
 
@@ -113,17 +110,15 @@ end
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
-
-    status = solveMCP(m)
 
     @show result_value.(x)
     @show result_value.(w)
     @show result_value.(p)
 
     @show status
-    @test status == :Solved
+    @test status == PATHSolver.MCP_Solved
     @test isapprox(result_value(x[1,2]), 300.0)
     @test isapprox(result_value(p[3]),  0.126)
 

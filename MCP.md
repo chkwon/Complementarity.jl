@@ -55,12 +55,10 @@ items = 1:4
 @mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
 @complementarity(m, F, x)
 
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
 
+status = solveMCP(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
-status = solveMCP(m, solver=:PATHSolver)
-
-z = getvalue(x)
+z = result_value(x)
 ````
 The result should be `[2.8, 0.0, 0.8, 1.2]`.
 
@@ -84,18 +82,17 @@ This is to define expressions for `F` in MCP. This is merely an alias of `JuMP.@
 ```
 This macro matches each element of `F` and the complementing element of `x`.
 
-```julia
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-```
-This adjusts options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
 
 ```julia
-solveMCP(m)
+solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 ```
-This solves the MCP and stores the solution inside `m`, which can be accessed by `getvalue(x)` as in JuMP.
+This solves the MCP and stores the solution inside `m`, which can be accessed by `result_value(x)`.
+Keyword arguments are options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
 
 
 ## Linear Complementarity Problems
+
+**NOT Supported with the new PATHSolver**
 
 When your problem is an LCP, then you can specify it. All functions defined by `@mapping` must be linear.
 ```julia
@@ -148,19 +145,16 @@ m = MCPModel()
 @complementarity(m, supply, w)
 @complementarity(m, fxdemand, p)
 
-PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
+status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
-
-status = solveMCP(m)
-
-@show getvalue(x)
-@show getvalue(w)
-@show getvalue(p)
+@show result_value.(x)
+@show result_value.(w)
+@show result_value.(p)
 
 @show status
-@assert status == :Solved
-@assert getvalue(x["seattle", "chicago"]) == 300.0
-@assert getvalue(p["topeka"]) == 0.126
+@assert status == PATHSolver.MCP_Solved
+@assert result_value(x["seattle", "chicago"]) == 300.0
+@assert result_value(p["topeka"]) == 0.126
 ```
 
 The result is
@@ -212,21 +206,25 @@ setvalue(x["seattle", "chicago"], 200)
 
 
 
-## Status Symbols
+## Termination Status
 ```julia
 status =
- [  :Solved,                          # 1 - solved
-    :StationaryPointFound,            # 2 - stationary point found
-    :MajorIterationLimit,             # 3 - major iteration limit
-    :CumulativeMinorIterationLimit,   # 4 - cumulative minor iteration limit
-    :TimeLimit,                       # 5 - time limit
-    :UserInterrupt,                   # 6 - user interrupt
-    :BoundError,                      # 7 - bound error (lb is not less than ub)
-    :DomainError,                     # 8 - domain error (could not find a starting point)
-    :InternalError                    # 9 - internal error
-  ]
- ```
-
+PATHSolver.@enum(
+    MCP_Termination,
+    MCP_Solved = 1,
+    MCP_NoProgress,
+    MCP_MajorIterationLimit,
+    MCP_MinorIterationLimit,
+    MCP_TimeLimit,
+    MCP_UserInterrupt,
+    MCP_BoundError,           # bound error (lb is not less than ub)
+    MCP_DomainError,          # domain error (could not find a starting point)
+    MCP_Infeasible,
+    MCP_Error,
+    MCP_LicenseError,
+    MCP_OK
+)
+```
 
 # Solution via NLsolve.jl
 
@@ -261,8 +259,7 @@ setvalue(x[4], 0.5)
 status = solveMCP(m, solver=:NLsolve)
 @show status
 
-z = getvalue(x)
-Fz = [getvalue(F1), getvalue(F2), getvalue(F3), getvalue(F4)]
+z = result_value(x)
 
 @show z
 @show Fz

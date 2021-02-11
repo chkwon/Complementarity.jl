@@ -47,17 +47,34 @@ using Complementarity, Printf
     end
 
 
-    PATHSolver.options(
+
+    stat = solveMCP(
+        model;         
         convergence_tolerance=1e-6,
-        output=:yes,
+        output="yes",
         time_limit=3600*12,
         # time_limit=0.1,
         minor_iteration_limit=1000,
-        cumulative_iteration_limit=1000000000)
+        cumulative_iteration_limit=1000000000
+    )
 
-    stat = solveMCP(model)
+    stat = solveMCP(
+        model;         
+        convergence_tolerance=1e-6,
+        output="yes",
+        time_limit=3600*12,
+        # time_limit=0.1,
+        minor_iteration_limit=1000,
+        cumulative_iteration_limit=1000000000
+    ) # solve twice to see if model is reusable
 
-    stat = solveMCP(model) # solve twice to see if model is reusable
-
-    stat = solveMCP(model) # solve three times to see if model is reusable
+    stat = solveMCP(
+        model;         
+        convergence_tolerance=1e-6,
+        output="yes",
+        time_limit=3600*12,
+        # time_limit=0.1,
+        minor_iteration_limit=1000,
+        cumulative_iteration_limit=1000000000
+    ) # solve three times to see if model is reusable
 end

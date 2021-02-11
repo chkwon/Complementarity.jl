@@ -1,5 +1,6 @@
 using Complementarity, Test
-
+# using Test
+# include("../src/debug.jl")
 @testset "mcp test 1 with PATHSolver" begin
 
     m = MCPModel()
@@ -19,9 +20,7 @@ using Complementarity, Test
     @complementarity(m, F3, x3)
     @complementarity(m, F2, x2)
 
-
-    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-    status = solveMCP(m, linear=true)
+    status = solveMCP(m; linear=true, convergence_tolerance=1e-8, output="no", time_limit=3600)
 
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
     # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
@@ -64,9 +63,7 @@ println("------------------------------------------------------------------")
     @complementarity(m, F1, x1)
     @complementarity(m, F4, x4)
 
-    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-
-    status = solveMCP(m)
+    status = solveMCP(m, convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
     # Fz = [result_value(F1), result_value(F2), result_value(F3), result_value(F4)]
@@ -98,9 +95,7 @@ println("------------------------------------------------------------------")
     @mapping(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
     @complementarity(m, myconst, myvariablename)
 
-    PATHSolver.options(convergence_tolerance=1e-8, output=:yes, time_limit=3600)
-
-    status = solveMCP(m)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     z = result_value.(myvariablename)
     # Fz = result_value(myconst)
@@ -138,10 +133,7 @@ println("------------------------------------------------------------------")
     @mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
     @complementarity(m, F, x)
 
-    PATHSolver.options(convergence_tolerance=1e-8, output=:no, time_limit=3600)
-
-
-    status = solveMCP(m)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="no", time_limit=3600)
 
     z = result_value.(x)
     # Fz = result_value(F) # currently produces an error

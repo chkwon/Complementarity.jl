@@ -20,7 +20,7 @@ using Complementarity
 
     include("runtests_mcp.jl")
 
-    include("runtests_lcp.jl")
+    # include("runtests_lcp.jl")
 
     include("runtests_mcp_nlsolve.jl")
 

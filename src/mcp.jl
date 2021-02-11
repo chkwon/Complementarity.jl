@@ -61,9 +61,9 @@ function get_initial_values_in_raw_index(m, mcp_data)
     return initial_values
 end
 
-function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false)
+function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false, kwargs...)
     if solver == :PATH
-        return _solve_path(m, linear=linear)
+        return _solve_path(m, linear=linear; kwargs...)
     elseif solver == :NLsolve
         return _solve_nlsolve(m, method=method)
     end
@@ -84,22 +84,33 @@ function sortperm_MCP_data(obj::Array{ComplementarityType,1})
 end
 
 # Using PATHSolver
-function _solve_path(m::JuMP.Model; linear=false)
+function _solve_path(m::JuMP.Model; linear=false, kwargs...)
 
-    function myfunc(z)
+    function myfunc(n::Cint, z::Vector{Cdouble}, F_val::Vector{Cdouble})
+        @assert n == length(z) == length(F_val)
         # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
-        F_val = zeros(n)
         MOI.eval_constraint(d, F_val, z)
 
         # F_val also should be in RawIndex
         # since it is the order in which constraints are added
 
-        return F_val
+        return Cint(0)
     end
 
-    function myjac(z)
+    function myjac(        
+        n::Cint,
+        nnz::Cint,
+        z::Vector{Cdouble},
+        col_start::Vector{Cint},
+        col_len::Vector{Cint},
+        row::Vector{Cint},
+        data::Vector{Cdouble}
+    )
+        @assert n == length(z) == length(col_start) == length(col_len)
+        @assert nnz == length(row) == length(data)    
+        
         # z is in RawIndex, passed from PATHSolver
         d = JuMP.NLPEvaluator(m)
         MOI.initialize(d, [:Grad])
@@ -110,11 +121,26 @@ function _solve_path(m::JuMP.Model; linear=false)
 
         jac_val = zeros(length(J))
         MOI.eval_constraint_jacobian(d, jac_val, z)
-
         # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
 
-        return sparse(I, J, jac_val)
+        Jac = sparse(I, J, jac_val)  # SparseMatrixCSC
+
+        # Pouring Jac::SparseMatrixCSC to the format used in PATH
+        for i in 1:n
+            col_start[i] = Jac.colptr[i]
+            col_len[i] = Jac.colptr[i + 1] - Jac.colptr[i]
+        end
+
+        rv = rowvals(Jac)
+        nz = nonzeros(Jac)
+        num_nonzeros = SparseArrays.nnz(Jac)
+        for i in 1:num_nonzeros
+            row[i] = rv[i]
+            data[i] = nz[i]
+        end
+
+        return Cint(0)
     end
 
     mcp_data = get_MCP_data(m)
@@ -142,17 +168,25 @@ function _solve_path(m::JuMP.Model; linear=false)
 
     # Solve the MCP using PATHSolver
     # ALL inputs to PATHSolver must be in RawIndex
-    if linear==true
-        J0 = myjac(zeros(size(lb)))
-        Jr = myjac(100*rand(Float64, size(ub)))
+    # if linear==true
+    #     J0 = myjac(zeros(size(lb)))
+    #     Jr = myjac(100*rand(Float64, size(ub)))
 
-        if !isapprox(J0, Jr)
-            error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
-        end
-        status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
-    else
-        status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
-    end
+    #     if !isapprox(J0, Jr)
+    #         error("The mappings do not seem linear. Rerun 'solveMCP()' after removing 'linear=true'.")
+    #     end
+    #     # status, z, f = PATHSolver.solveLCP(myfunc, J0, lb, ub, initial_values, var_name, F_name)
+
+    #     status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
+    #     f = myfunc(z)
+    # else
+    #     # status, z, f = PATHSolver.solveMCP(myfunc, myjac, lb, ub, initial_values, var_name, F_name)
+    #     # MCP_Termination(status), X, info 
+    #     status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
+    #     f = myfunc(z)
+    # end
+
+    status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; kwargs...)
     # z, f are in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
