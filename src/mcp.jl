@@ -84,7 +84,7 @@ end
 function _solve_path!(m::JuMP.Model; kwargs...)
     d = JuMP.NLPEvaluator(m)
 
-    function myfunc(n::Cint, z::Vector{Cdouble}, F_val::Vector{Cdouble})
+    function function_callback(n::Cint, z::Vector{Cdouble}, F_val::Vector{Cdouble})
         @assert n == length(z) == length(F_val)
         # z is in RawIndex, passed from PATHSolver
         MOI.initialize(d, [:Jac])
@@ -109,7 +109,7 @@ function _solve_path!(m::JuMP.Model; kwargs...)
         return Jac
     end
 
-    function myjac(        
+    function jacobian_callback(        
         n::Cint,
         nnz::Cint,
         z::Vector{Cdouble},
@@ -174,8 +174,19 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     end
     nnz = min( 2 * nnz, n^2 )
 
+
     # Solve the MCP using PATHSolver
-    status, z, info = PATHSolver.solve_mcp(myfunc, myjac, lb, ub, initial_values; nnz=nnz, kwargs...)
+    status, z, info = PATHSolver.solve_mcp(
+        function_callback, 
+        jacobian_callback, 
+        lb, 
+        ub, 
+        initial_values; 
+        nnz = nnz, 
+        variable_name = var_name,
+        constraint_name = F_name,
+        kwargs...
+    )
     # z is in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
@@ -193,21 +204,20 @@ end
 
 
 function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
+    d = JuMP.NLPEvaluator(m)
 
-    function myfunc!(fvec, z)
+    function function_callback!(fvec, z)
         # z is in RawIndex, passed from PATHSolver
-        d = JuMP.NLPEvaluator(m)
-        MOI.initialize(d, [:Grad])
+        MOI.initialize(d, [:Jac])
         F_val = zeros(n)
         MOI.eval_constraint(d, F_val, z)
 
         copyto!(fvec, F_val)
     end
 
-    function myjac!(fjac, z)
+    function jacobian_callback!(fjac, z)
         # z is in RawIndex, passed from PATHSolver
-        d = JuMP.NLPEvaluator(m)
-        MOI.initialize(d, [:Grad])
+        MOI.initialize(d, [:Jac])
         J_struct = MOI.jacobian_structure(d)
 
         I = first.(J_struct)
@@ -243,7 +253,7 @@ function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
     # Solve the MCP using NLsolve
     # ALL inputs to NLsolve must be in RawIndex
 
-    r = NLsolve.mcpsolve(myfunc!, myjac!, lb, ub, initial_values, method = method,
+    r = NLsolve.mcpsolve(function_callback!, jacobian_callback!, lb, ub, initial_values, method = method,
         iterations = 10_000)
     # function mcpsolve{T}(f,
     #                   j,
