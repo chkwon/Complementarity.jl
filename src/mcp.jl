@@ -183,8 +183,8 @@ function _solve_path!(m::JuMP.Model; kwargs...)
         ub, 
         initial_values; 
         nnz = nnz, 
-        variable_name = var_name,
-        constraint_name = F_name,
+        variable_names = var_name,
+        constraint_names = F_name,
         kwargs...
     )
     # z is in RawIndex

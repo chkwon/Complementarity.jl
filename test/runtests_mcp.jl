@@ -1,6 +1,5 @@
 using Complementarity, Test
-# using Test
-# include("../src/debug.jl")
+
 @testset "mcp test 1 with PATHSolver" begin
 
     m = MCPModel()
