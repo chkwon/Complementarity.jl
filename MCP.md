@@ -56,7 +56,7 @@ items = 1:4
 @complementarity(m, F, x)
 
 
-status = solveMCP!(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 z = result_value(x)
 ````
@@ -84,21 +84,11 @@ This macro matches each element of `F` and the complementing element of `x`.
 
 
 ```julia
-solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 ```
 This solves the MCP and stores the solution inside `m`, which can be accessed by `result_value(x)`.
 Keyword arguments are options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
 
-
-## Linear Complementarity Problems
-
-**NOT Supported with the new PATHSolver**
-
-When your problem is an LCP, then you can specify it. All functions defined by `@mapping` must be linear.
-```julia
-solveMCP!(m, linear=true)
-```
-This prevents PATHSolver from evaluating the Jacobian matrix at every iteration.
 
 
 
@@ -145,14 +135,14 @@ m = MCPModel()
 @complementarity(m, supply, w)
 @complementarity(m, fxdemand, p)
 
-status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 @show result_value.(x)
 @show result_value.(w)
 @show result_value.(p)
 
 @show status
-@assert status == PATHSolver.MCP_Solved
+@assert status == :Solved
 @assert result_value(x["seattle", "chicago"]) == 300.0
 @assert result_value(p["topeka"]) == 0.126
 ```
@@ -208,29 +198,24 @@ setvalue(x["seattle", "chicago"], 200)
 
 ## Termination Status
 ```julia
-status =
-PATHSolver.@enum(
-    MCP_Termination,
-    MCP_Solved = 1,
-    MCP_NoProgress,
-    MCP_MajorIterationLimit,
-    MCP_MinorIterationLimit,
-    MCP_TimeLimit,
-    MCP_UserInterrupt,
-    MCP_BoundError,           # bound error (lb is not less than ub)
-    MCP_DomainError,          # domain error (could not find a starting point)
-    MCP_Infeasible,
-    MCP_Error,
-    MCP_LicenseError,
-    MCP_OK
-)
+const return_status =[  
+    :Solved,                          # 1 - solved
+    :StationaryPointFound,            # 2 - stationary point found (no improvement)
+    :MajorIterationLimit,             # 3 - major iteration limit
+    :CumulativeMinorIterationLimit,   # 4 - cumulative minor iteration limit
+    :TimeLimit,                       # 5 - time limit
+    :UserInterrupt,                   # 6 - user interrupt
+    :BoundError,                      # 7 - bound error (lb is not less than ub)
+    :DomainError,                     # 8 - domain error (could not find a starting point)
+    :InternalError                    # 9 - internal error
+]
 ```
 
 # Solution via NLsolve.jl
 
 ## Example 3
 
-We can specify `NLsolve` as the solver by providing `solver=:NLsolve` to `solveMCP!()`.
+We can specify `NLsolve` as the solver by providing `solver=:NLsolve` to `solveMCP()`.
 ```julia
 using Complementarity
 
@@ -256,7 +241,7 @@ setvalue(x[2], 0.)
 setvalue(x[3], 0.)
 setvalue(x[4], 0.5)
 
-status = solveMCP!(m, solver=:NLsolve)
+status = solveMCP(m, solver=:NLsolve)
 @show status
 
 z = result_value(x)

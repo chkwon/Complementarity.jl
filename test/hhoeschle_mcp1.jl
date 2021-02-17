@@ -48,7 +48,7 @@ using Complementarity, Printf
 
 
 
-    stat = solveMCP!(
+    stat = solveMCP(
         model;         
         convergence_tolerance=1e-6,
         output="yes",
@@ -58,7 +58,7 @@ using Complementarity, Printf
         cumulative_iteration_limit=1000000000
     )
 
-    stat = solveMCP!(
+    stat = solveMCP(
         model;         
         convergence_tolerance=1e-6,
         output="yes",
@@ -68,7 +68,7 @@ using Complementarity, Printf
         cumulative_iteration_limit=1000000000
     ) # solve twice to see if model is reusable
 
-    stat = solveMCP!(
+    stat = solveMCP(
         model;         
         convergence_tolerance=1e-6,
         output="yes",

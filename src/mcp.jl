@@ -1,3 +1,18 @@
+const return_type =[  
+    :Solved,                          # 1 - The problem was solved
+    :StationaryPointFound,            # 2 - A stationary point was found
+    :MajorIterationLimit,             # 3 - Major iteration limit met
+    :CumulativeMinorIterationLimit,   # 4 - Cumulative minor iterlim met
+    :TimeLimit,                       # 5 - Ran out of time
+    :UserInterrupt,                   # 6 - Control-C, typically
+    :BoundError,                      # 7 - Problem has a bound error (lb is not less than ub)
+    :DomainError,                     # 8 - Could not find starting point
+    :Infeasible,                      # 9 - Problem has no solution  
+    :Error,                           #10 - An error occurred within the code
+    :LicenseError,                    #11 - License could not be found
+    :OK                               #12 - OK
+]
+  
 mutable struct ComplementarityType
     lb::AbstractFloat
     var::JuMP.VariableRef
@@ -61,7 +76,15 @@ function get_initial_values_in_raw_index(m, mcp_data)
     return initial_values
 end
 
-function solveMCP!(m::JuMP.Model; solver=:PATH, method=:trust_region, kwargs...)
+function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
+    @warn("The solveLCP function has been deprecated. Use solveMCP instead.")
+    return solveMCP(m, solver=solver, method=method)
+end
+
+function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false, kwargs...)
+    if linear
+        @warn("The linear keyword argument has been deprecated. You don't need to set it anymore.")
+    end    
     if solver == :PATH
         return _solve_path!(m; kwargs...)
     elseif solver == :NLsolve
@@ -199,7 +222,7 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     m.nlp_data.nlconstr = []
 
     # This function has changed the content of m already.
-    return status
+    return return_type[Int(status)]
 end
 
 

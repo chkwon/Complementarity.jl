@@ -21,7 +21,7 @@ using Test
 
     set_start_value.(x, x0)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)
@@ -43,7 +43,7 @@ using Test
 
 
     set_start_value.(x, x0)
-    status = solveMCP!(m, solver=:PATH)
+    status = solveMCP(m, solver=:PATH)
     @show status
 
     z = result_value.(x)
@@ -64,7 +64,7 @@ using Test
 
 
     set_start_value.(x, x0)
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)
@@ -109,7 +109,7 @@ println("------------------------------------------------------------------")
     @mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
     @complementarity(m, F, x)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)
@@ -148,7 +148,7 @@ println("------------------------------------------------------------------")
     @mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
     @complementarity(m, F, x)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)
@@ -184,7 +184,7 @@ println("------------------------------------------------------------------")
     @mapping(m, myconst[i=1:4], sum(M[i,j]*myvariablename[j] for j in 1:4) + q[i])
     @complementarity(m, myconst, myvariablename)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(myvariablename)
@@ -227,7 +227,7 @@ println("------------------------------------------------------------------")
     set_start_value(x[3], 0.)
     set_start_value(x[4], 0.5)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)
@@ -249,7 +249,7 @@ println("------------------------------------------------------------------")
     set_start_value(x[3], 0.1)
     set_start_value(x[4], 0.49)
 
-    status = solveMCP!(m, solver=:PATH)
+    status = solveMCP(m, solver=:PATH)
     @show status
 
     z = result_value.(x)
@@ -272,7 +272,7 @@ println("------------------------------------------------------------------")
     set_start_value(x[3], 0.2)
     set_start_value(x[4], 0.43)
 
-    status = solveMCP!(m, solver=:NLsolve)
+    status = solveMCP(m, solver=:NLsolve)
     @show status
 
     z = result_value.(x)

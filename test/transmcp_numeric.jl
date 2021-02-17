@@ -56,14 +56,14 @@ using Test
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
     @show result_value.(x)
     @show result_value.(w)
     @show result_value.(p)
 
     @show status
-    @test status == PATHSolver.MCP_Solved
+    @test status == :Solved
     @test isapprox(result_value(x[1,2]), 300.0)
     @test isapprox(result_value(p[3]),  0.126)
 
@@ -110,7 +110,7 @@ end
     @complementarity(m, supply, w)
     @complementarity(m, fxdemand, p)
 
-    status = solveMCP!(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
 
     @show result_value.(x)
@@ -118,7 +118,7 @@ end
     @show result_value.(p)
 
     @show status
-    @test status == PATHSolver.MCP_Solved
+    @test status == :Solved
     @test isapprox(result_value(x[1,2]), 300.0)
     @test isapprox(result_value(p[3]),  0.126)
 

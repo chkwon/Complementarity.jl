@@ -14,8 +14,8 @@ using Complementarity
         #     @complementarity(m, F[i,j,k,l], x[i,j,k,l])
         # end
         @complementarity(m, F, x)        
-        status = solveMCP!(m)
-        @test status == PATHSolver.MCP_Solved
+        status = solveMCP(m)
+        @test status == :Solved
     end
 
     include("hhoeschle_mcp1.jl")

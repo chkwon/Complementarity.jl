@@ -25,7 +25,7 @@ end
 @exportall JuMP
 
 export  MCPModel, MCPData, ComplementarityType,
-        complements, solveMCP!,
+        complements, solveMCP, solveLCP,
         result_value, set_start_value,
         @complementarity, @complements, @mapping, @variable,
         @NLexpression, @expression,
