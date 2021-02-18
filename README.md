@@ -1,6 +1,7 @@
-**NOTE** This package will no longer be maintained. For solving Mixed Complementarity Problems via the PATH solver, use the all-new [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl), which provides a Julia native access to the PATH solver and integration with JuMP.jl. For solving MPEC, `JuMP.jl` `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). It is unclear which solvers support complementarity constraints.
+**NOTE:** The [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) has been completely rewritten between `v0.6.2` and `v1.1.0`. Now PATHSolver.jl provides both an interface to the [PATH](http://pages.cs.wisc.edu/~ferris/path.html) solver and an integration to JuMP, but only limited to *linear* problems at this moment. For *nonlinear* problems, you still need to use [Complementarity.jl](https://github.com/chkwon/Complementarity.jl), which now also uses the new PATHSolver.jl as its solver. Most parts of Complementarity.jl remain the same, except how the solver options are passed. 
 
-Complementarity.jl only works with [PATHSolver.jl v0.6.2](https://github.com/chkwon/PATHSolver.jl).
+**NOTE:** For solving MPEC, JuMP.jl `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). At this moment, [GAMS.jl](https://github.com/GAMS-dev/gams.jl) and [KNITRO](https://github.com/jump-dev/KNITRO.jl) support complementarity constraints.
+
 
 # Complementarity.jl
 
