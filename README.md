@@ -1,6 +1,3 @@
-**NOTE:** The [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) has been completely rewritten between `v0.6.2` and `v1.1.0`. Now PATHSolver.jl provides both an interface to the [PATH](http://pages.cs.wisc.edu/~ferris/path.html) solver and an integration to JuMP, but only limited to *linear* problems at this moment. For *nonlinear* problems, you still need to use [Complementarity.jl](https://github.com/chkwon/Complementarity.jl), which now also uses the new PATHSolver.jl as its solver. Most parts of Complementarity.jl remain the same, except how the solver options are passed. 
-
-**NOTE:** For solving MPEC, JuMP.jl `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). At this moment, [GAMS.jl](https://github.com/GAMS-dev/gams.jl) and [KNITRO](https://github.com/jump-dev/KNITRO.jl) support complementarity constraints.
 
 
 # Complementarity.jl
@@ -16,7 +13,12 @@ This package provides modeling language for (1) mixed complementarity problems (
 
 ## Mixed Complementarity Problems (MCP)
 
+**NOTE:** The [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) has been completely rewritten between `v0.6.2` and `v1.1.0`. Now PATHSolver.jl provides both an interface to the [PATH](http://pages.cs.wisc.edu/~ferris/path.html) solver and an integration to JuMP, but only limited to *linear* problems at this moment. For *nonlinear* problems, you still need to use [Complementarity.jl](https://github.com/chkwon/Complementarity.jl), which now also uses the new PATHSolver.jl as its solver. Most parts of Complementarity.jl remain the same, except how the solver options are passed. 
+
+
 ***[MCP Documentation](MCP.md)***
+
+
 
 - This package provides a modeling and computational interface for solving [Mixed Complementarity Problems](https://en.wikipedia.org/wiki/Mixed_complementarity_problem) (MCP): modeling by [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) and computing by [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) and [NLsolve.jl](https://github.com/EconForge/NLsolve.jl). See [the documentation](MCP.md).
 
@@ -42,7 +44,12 @@ status = solveMCP(m)
 
 ## Mathematical Programs with Equilibrium Constraints (MPEC)
 
+**NOTE:** For solving MPEC, JuMP.jl `v0.21` has started supporting [complementarity constraints](http://www.juliaopt.org/JuMP.jl/v0.21.1/constraints/#Complementarity-constraints-1). At this moment, [GAMS.jl](https://github.com/GAMS-dev/gams.jl) and [KNITRO](https://github.com/jump-dev/KNITRO.jl) support complementarity constraints.
+
+
 ***[MPEC Documentation](MPEC.md)***
+
+
 
 - For solving [mathematical programs with equilibrium constraints (MPEC)](https://en.wikipedia.org/wiki/Mathematical_programming_with_equilibrium_constraints), this package provides an extension to [JuMP.jl](https://github.com/JuliaOpt/JuMP.jl) by providing a macro that accepts complementarity conditions as constraints.  Then it reformulates the complementarity conditions as a set of equality and inequality constraints so that a nonlinear optimization solver such as [Ipopt.jl](https://github.com/JuliaOpt/Ipopt.jl) can solve the problem. See [the documentation](MPEC.md).
 
