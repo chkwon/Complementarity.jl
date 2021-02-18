@@ -5,8 +5,10 @@
 
 # Complementarity.jl
 
-[![Build Status](https://travis-ci.org/chkwon/Complementarity.jl.svg?branch=master)](https://travis-ci.org/chkwon/Complementarity.jl)
-[![Coverage Status](https://coveralls.io/repos/github/chkwon/Complementarity.jl/badge.svg?branch=master)](https://coveralls.io/github/chkwon/Complementarity.jl?branch=master)
+
+[![Build Status](https://github.com/chkwon/Complementarity.jl/workflows/CI/badge.svg?branch=master)](https://github.com/chkwon/Complementarity.jl/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/chkwon/Complementarity.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/chkwon/Complementarity.jl)
+
 
 This package provides modeling language for (1) mixed complementarity problems (MCP) and (2) mathematical programs with equilibrium problems (MPEC).
 
