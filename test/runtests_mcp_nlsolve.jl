@@ -17,7 +17,7 @@ using Test
     @mapping(m, F2, 2*x[1]^2+x[1]+x[2]^2+3*x[3]+2*x[4]-2)
     @mapping(m, F3, 3*x[1]^2+x[1]*x[2]+2*x[2]^2+2*x[3]+3*x[4]-1)
     @mapping(m, F4, x[1]^2+3*x[2]^2+2*x[3]+3*x[4]-3)
-    @complementarity(m, [F1 F2 F3 F4], x)
+    @complementarity(m, [F1, F2, F3, F4], x)
 
     set_start_value.(x, x0)
 
