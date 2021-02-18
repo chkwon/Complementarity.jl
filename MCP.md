@@ -198,17 +198,18 @@ setvalue(x["seattle", "chicago"], 200)
 
 ## Termination Status
 ```julia
-const return_status =[  
-    :Solved,                          # 1 - solved
-    :StationaryPointFound,            # 2 - stationary point found (no improvement)
-    :MajorIterationLimit,             # 3 - major iteration limit
-    :CumulativeMinorIterationLimit,   # 4 - cumulative minor iteration limit
-    :TimeLimit,                       # 5 - time limit
-    :UserInterrupt,                   # 6 - user interrupt
-    :BoundError,                      # 7 - bound error (lb is not less than ub)
-    :DomainError,                     # 8 - domain error (could not find a starting point)
-    :InternalError                    # 9 - internal error
-]
+    :Solved,                          # 1 - The problem was solved
+    :StationaryPointFound,            # 2 - A stationary point was found
+    :MajorIterationLimit,             # 3 - Major iteration limit met
+    :CumulativeMinorIterationLimit,   # 4 - Cumulative minor iterlim met
+    :TimeLimit,                       # 5 - Ran out of time
+    :UserInterrupt,                   # 6 - Control-C, typically
+    :BoundError,                      # 7 - Problem has a bound error (lb is not less than ub)
+    :DomainError,                     # 8 - Could not find starting point
+    :Infeasible,                      # 9 - Problem has no solution  
+    :Error,                           #10 - An error occurred within the code
+    :LicenseError,                    #11 - License could not be found
+    :OK                               #12 - OK
 ```
 
 # Solution via NLsolve.jl
