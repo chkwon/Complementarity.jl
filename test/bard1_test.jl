@@ -52,9 +52,10 @@ using Test
 
     # just testing
     @macroexpand(@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
-    # @macroexpand(@complements(m, 0<= 3*x - y - 3 <=10,  l[1]))
     @macroexpand(@complements(m, 3*x - y - 3,    5 >=  l[1] >= 0))
-    # @macroexpand(@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
+    
+    @test_throws LoadError @macroexpand(@complements(m,  0 <= 3*x - y - 3 <=10,  l[1]))
+    @test_throws LoadError @macroexpand(@complements(m, 10 >= 3*x - y - 3 >= 5,  l[1]))
 
     JuMP.optimize!(m)
     @show JuMP.value.(x)
