@@ -19,11 +19,22 @@ using Complementarity, Test
     @complementarity(m, F3, x3)
     @complementarity(m, F2, x2)
 
-    status = solveMCP(m; convergence_tolerance=1e-8, output="no", time_limit=3600)
+    # This will show deprecation warning.
+    status = solveLCP(m)
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
     @show z
     @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
-    
+
+    # This will show deprecation warning.
+    status = solveMCP(m; linear=true)
+    z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
+    @show z
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
+
+    status = solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+    z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]
+    @show z
+    @test isapprox(z, [2.8, 0.0, 0.8, 1.2])
     
     status = solveMCP(m)
     z = [result_value(x1), result_value(x2), result_value(x3), result_value(x4)]

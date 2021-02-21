@@ -331,16 +331,6 @@ function set_result_value(mcp_data::ComplementarityType, value::Float64)
     mcp_data.result_value = value
 end
 
-function set_result_value(v::JuMP.VariableRef, value::Float64)
-    mcp_data = get_MCP_data(v.model)
-    for i in 1:length(mcp_data)
-        if mcp_data[i].var == v
-            mcp_data.result_value = value
-            break
-        end
-    end
-end
-
 function result_value(v::JuMP.VariableRef)
     mcp_data = get_MCP_data(v.model)
     result_value = NaN
