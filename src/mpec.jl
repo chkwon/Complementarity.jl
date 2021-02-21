@@ -42,14 +42,6 @@ esc_nonconstant(x::Number) = x
 esc_nonconstant(x) = esc(x)
 complements_error(args, str) = error("In @complements($(join(args,","))): ", str)
 
-# for backward compatibility with 0.4
-function comparison_to_call(ex)
-    if isexpr(ex,:comparison) && length(ex.args) == 3
-        return Expr(:call, ex.args[2], ex.args[1], ex.args[3])
-    else
-        return ex
-    end
-end
 
 
 function smooth(c1, c2)
