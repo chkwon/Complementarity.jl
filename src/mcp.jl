@@ -81,10 +81,22 @@ function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
     return solveMCP(m, solver=solver, method=method)
 end
 
+# This function copies all current bound information from the variables
+# in the JuMP model over to the MCP data structure.
+function update_bounds!(m::JuMP.Model)
+    mcp_data = get_MCP_data(m)
+
+    for dim in mcp_data
+        dim.lb = JuMP.is_fixed(dim.var) ? JuMP.fix_value(dim.var) : JuMP.has_lower_bound(dim.var) ? JuMP.lower_bound(dim.var) : -Inf
+        dim.ub = JuMP.is_fixed(dim.var) ? JuMP.fix_value(dim.var) : JuMP.has_upper_bound(dim.var) ? JuMP.upper_bound(dim.var) : Inf
+    end
+end
+
 function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=false, kwargs...)
     if linear
         @warn("The linear keyword argument has been deprecated. You don't need to set it anymore.")
     end    
+    update_bounds!(m)
     if solver == :PATH
         return _solve_path!(m; kwargs...)
     elseif solver == :NLsolve
