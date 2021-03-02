@@ -351,8 +351,8 @@ end
 
 function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.NonlinearExpression, F_name::String)
 
-  lb = JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
-  ub = JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
+  lb = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
+  ub = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
   var_name = JuMP.name(var)
   new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
   mcp_data = get_MCP_data(m)
