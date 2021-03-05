@@ -52,13 +52,13 @@ items = 1:4
 
 # @variable(m, lb[i] <= x[i in items] <= ub[i])
 @variable(m, x[i in items] >= 0)
-@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
 @complementarity(m, F, x)
 
 
-status = solveMCP(m, solver=:PATHSolver; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP(m, solver=:PATH, convergence_tolerance=1e-8, output="yes", time_limit=3600)
 
-z = result_value(x)
+z = result_value.(x)
 ````
 The result should be `[2.8, 0.0, 0.8, 1.2]`.
 
@@ -73,7 +73,7 @@ This line prepares a JuMP Model, just same as in [JuMP.jl](https://github.com/Ju
 Defining variables is exactly same as in JuMP.jl. Lower and upper bounds on the variables in the MCP model should be provided here.
 
 ```julia
-@mapping(m, F[i in items], sum{M[i,j]*x[j], j in items} + q[i])
+@mapping(m, F[i in items], sum(M[i,j]*x[j] for j in items) + q[i])
 ```
 This is to define expressions for `F` in MCP. This is merely an alias of `JuMP.@NLexpression`.
 
@@ -84,7 +84,7 @@ This macro matches each element of `F` and the complementing element of `x`.
 
 
 ```julia
-solveMCP(m; convergence_tolerance=1e-8, output="yes", time_limit=3600)
+status = solveMCP(m, solver=:PATH, convergence_tolerance=1e-8, output="yes", time_limit=3600)
 ```
 This solves the MCP and stores the solution inside `m`, which can be accessed by `result_value(x)`.
 Keyword arguments are options of the PATH Solver. See the [list of options](http://www.cs.wisc.edu/~ferris/path/options.pdf).
