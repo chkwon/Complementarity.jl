@@ -101,6 +101,8 @@ function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=fals
         return _solve_path!(m; kwargs...)
     elseif solver == :NLsolve
         return _solve_nlsolve!(m, method=method)
+    else
+        error("Choose :PATH or :NLsolve as the solver for MCP.")
     end
 end
 
