@@ -141,8 +141,9 @@ function _solve_path!(m::JuMP.Model; kwargs...)
         MOI.eval_constraint_jacobian(d, jac_val, z)
         # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
-
-        Jac = sparse(I, J, jac_val)  # SparseMatrixCSC
+        
+        nc = length(d.constraints)           # number of constraints
+        Jac = sparse(I, J, jac_val, nc, nc)  # SparseMatrixCSC
         return Jac
     end
 
