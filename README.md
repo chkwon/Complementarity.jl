@@ -67,7 +67,7 @@ s.t. (x+2) x = 0,  x ≥ 0,   x+2 ≥ 0
 
 ```julia
 using JuMP, Ipopt, Complementarity
-m = Model(solver=IpoptSolver())
+m = Model(Ipopt.Optimizer)
 @variable(m, x>=0)
 @NLobjective(m, Min, x^3)
 @complements(m, 0 <= x+2,   x >= 0)
