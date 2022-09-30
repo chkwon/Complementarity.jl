@@ -258,6 +258,14 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     n = length(p)
 
 
+ 
+    if n == 0
+        #If all the variables are fixed, there is nothing to solve
+        return return_type[1]
+    end
+
+
+
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
     #JuMP.@NLconstraint(m, [i=1:n], mcp_data[conversion_dict[p[i]]].F == 0)
     
