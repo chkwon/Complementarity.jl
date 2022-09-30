@@ -40,7 +40,31 @@ end
 
 raw_index(v::JuMP.VariableRef) = JuMP.index(v).value
 
-function get_bounds_in_raw_index(mcp_data)
+
+function get_raw_index(mcp_data::Array{ComplementarityType,1})
+    return [raw_index(mcp.var) for mcp in mcp_data]
+end
+
+function get_non_fixed_raw_index(mcp_data::Array{ComplementarityType,1})
+    return [i for i in get_raw_index(mcp_data) if !JuMP.is_fixed(mcp_data[i].var)]
+end
+
+function get_sorted_non_fixed_raw_index(mcp_data::Array{ComplementarityType,1})
+    return [i for i in sortperm(get_raw_index(mcp_data)) if !JuMP.is_fixed(mcp_data[i].var)]
+end
+
+function sortperm_MCP_data(obj::Array{ComplementarityType,1})
+    n = length(obj)
+    ref = Array{Int}(undef, n)
+    for i in 1:n
+        ref[i] = obj[i].raw_idx
+    end
+
+    return sortperm(ref)
+end
+
+
+function get_bounds_in_raw_index(mcp_data::Array{ComplementarityType,1})
     n = length(mcp_data)
     lb = zeros(n)
     ub = ones(n)
@@ -49,6 +73,13 @@ function get_bounds_in_raw_index(mcp_data)
         ub[raw_index(mcp_data[i].var)] = mcp_data[i].ub
     end
     return lb, ub
+end
+
+function get_bounds_non_fixed_raw_index(mcp_data::Array{ComplementarityType,1})
+    indices = get_sorted_non_fixed_raw_index(mcp_data)
+    lb = [mcp_data[i].lb for i in indices]
+    ub = [mcp_data[i].ub for i in indices]
+    return lb,ub
 end
 
 
@@ -60,6 +91,13 @@ function get_names_in_raw_index(mcp_data)
         var_name[raw_index(mcp_data[i].var)] = mcp_data[i].var_name
         F_name[raw_index(mcp_data[i].var)] = mcp_data[i].F_name
     end
+    return var_name, F_name
+end
+
+function get_names_non_fixed_raw_index(mcp_data::Array{ComplementarityType,1})
+    indices = get_sorted_non_fixed_raw_index(mcp_data)
+    var_name = [mcp_data[i].var_name for i in indices]
+    F_name = [mcp_data[i].F_name for i in indices]
     return var_name, F_name
 end
 
@@ -75,6 +113,12 @@ function get_initial_values_in_raw_index(m, mcp_data)
     end
     return initial_values
 end
+
+function get_initial_values_non_fixed_raw_index(mcp_data::Array{ComplementarityType,1})
+    indices = get_sorted_non_fixed_raw_index(mcp_data)
+    return [(JuMP.start_value(mcp_data[i].var) === nothing) ? mcp_data[i].lb : JuMP.start_value(mcp_data[i].var) for i in indices]
+end
+
 
 function solveLCP(m::JuMP.Model; solver=:PATH, method=:trust_region)
     @warn("The solveLCP function has been deprecated. Use solveMCP instead.")
@@ -107,19 +151,25 @@ function solveMCP(m::JuMP.Model; solver=:PATH, method=:trust_region, linear=fals
 end
 
 
-function sortperm_MCP_data(obj::Array{ComplementarityType,1})
-    n = length(obj)
-    ref = Array{Int}(undef, n)
-    for i in 1:n
-        ref[i] = obj[i].raw_idx
-    end
+function reduce_array(L :: Vector{Int64})
+    #Given an array of postive integers, reduce to lowest value.
+    #If L = [3,2,2,5] return [2,1,1,3]
+    #This may not be the best way to do this.
 
-    return sortperm(ref)
+    u = unique(L)
+    convert = Dict(zip(sort(u),1:length(u)))
+
+    return [convert[i] for i in L]
+
 end
+
+
 
 # Using PATHSolver
 function _solve_path!(m::JuMP.Model; kwargs...)
     d = JuMP.NLPEvaluator(m)
+
+    set_fixed_values(m)
 
     function function_callback(n::Cint, z::Vector{Cdouble}, F_val::Vector{Cdouble})
         @assert n == length(z) == length(F_val)
@@ -132,17 +182,22 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     end
 
     function j_eval(z::Vector{Cdouble})
+
         MOI.initialize(d, [:Jac])
         J_struct = MOI.jacobian_structure(d)
+
         I = first.(J_struct)
-        J = last.(J_struct)
+        J = reduce_array(last.(J_struct))
+
 
         jac_val = zeros(length(J))
         MOI.eval_constraint_jacobian(d, jac_val, z)
         # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
         
-        nc = length(d.constraints)           # number of constraints
+        nc = length(d.constraints)         # number of constraints
+
+
         Jac = sparse(I, J, jac_val, nc, nc)  # SparseMatrixCSC
         return Jac
     end
@@ -180,7 +235,10 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     end
 
     mcp_data = get_MCP_data(m)
-    n = length(mcp_data)
+
+    
+
+    #n = length(mcp_data)
 
     # Two Indices
     # MCP_Index: the order stored in MCPModel = array index of Array{ComplementarityType}
@@ -190,20 +248,36 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     # in order to query Jacobian using AutoDiff thru MathProgBase
     # i = RawIndex
     # Add constraint in the order of RawIndex
-    p = sortperm_MCP_data(mcp_data)
+    #p = sortperm_MCP_data(mcp_data)
+    p = get_sorted_non_fixed_raw_index(mcp_data)
+
+    conversion_dict = Dict(zip(p,get_non_fixed_raw_index(mcp_data)))
+    
+
+
+    n = length(p)
+
+
     JuMP.@NLconstraint(m, [i=1:n], mcp_data[p[i]].F == 0)
+    #JuMP.@NLconstraint(m, [i=1:n], mcp_data[conversion_dict[p[i]]].F == 0)
+    
+    #JuMP.@NLconstraint(m, [i ∈ p], mcp_data[i].F == 0)
 
     # lb and ub in RawIndex
-    lb, ub = get_bounds_in_raw_index(mcp_data)
+    #lb, ub = get_bounds_in_raw_index(mcp_data)
+    lb, ub = get_bounds_non_fixed_raw_index(mcp_data)
 
     # var_name, F_name in RawIndex
-    var_name, F_name = get_names_in_raw_index(mcp_data)
+    #var_name, F_name = get_names_in_raw_index(mcp_data)
+    var_name, F_name = get_names_non_fixed_raw_index(mcp_data)
 
     # initial values
-    initial_values = get_initial_values_in_raw_index(m, mcp_data)
+    #initial_values = get_initial_values_in_raw_index(m, mcp_data)
+    initial_values = get_initial_values_non_fixed_raw_index(mcp_data)
+
 
     # overestimating number of nonzeros in Jacobian
-    nnz = max( SparseArrays.nnz(j_eval(lb)), SparseArrays.nnz(j_eval(ub)) )
+    nnz = max( SparseArrays.nnz(j_eval(lb)), SparseArrays.nnz(j_eval(ub)))
     nnz = max( nnz, SparseArrays.nnz(j_eval(initial_values)) )
     for i in 1:2
         z_rand = max.(lb, min.(ub, rand(Float64, n)))
@@ -228,8 +302,12 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     # z is in RawIndex
 
     # After solving set the values in m::JuMP.Model to the solution obtained.
+
+    
     for i in 1:n
-        set_result_value(mcp_data[i], z[mcp_data[i].raw_idx])
+        #println("$i -> $(conversion_dict[p[i]]) -> $(z[i])")
+        #set_result_value(mcp_data[conversion_dict[p[i]]], z[i])#mcp_data[i].raw_idx])
+        set_result_value(mcp_data[p[i]], z[i])#mcp_data[i].raw_idx])
     end
 
     # Cleanup. Remove all dummy @NLconstraints added,
@@ -346,6 +424,14 @@ function set_result_value(mcp_data::ComplementarityType, value::Float64)
     mcp_data.result_value = value
 end
 
+
+function set_fixed_values(m::JuMP.Model)
+    mcp_data = get_MCP_data(m)
+    for md in [d for d in mcp_data if JuMP.is_fixed(d.var)]
+        set_result_value(md,JuMP.fix_value(md.var))
+    end
+end
+
 function result_value(v::JuMP.VariableRef)
     mcp_data = get_MCP_data(v.model)
     result_value = NaN
@@ -366,12 +452,13 @@ end
 
 function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.NonlinearExpression, F_name::String)
 
-  lb = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
-  ub = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
-  var_name = JuMP.name(var)
-  new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
-  mcp_data = get_MCP_data(m)
-  push!(mcp_data, new_dimension)
+    lb = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
+    ub = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
+    var_name = JuMP.name(var)
+    new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
+    mcp_data = get_MCP_data(m)
+    push!(mcp_data, new_dimension)
+
 end
 
 macro complementarity(m, F, var)
@@ -422,17 +509,38 @@ macro complementarity(m, F, var)
 
     else # isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1 or > 1
       # when var is a multi-dimensional JuMP variable array
+
       ex = :(Base.product())
-      for i in 1:length($var.axes)
-        push!(ex.args, $var.axes[i])
-      end
-      idx_list = collect(eval(ex))
+
+      if isa($F,JuMP.Containers.SparseAxisArray)
+        idx_list = collect(keys($F.data))
+      else
+
+        for i in 1:length($F.axes)
+            
+            push!(ex.args, $F.axes[i])
+            #println("$i -> $(i) -> $ex")
+        end
+        idx_list = collect(eval(ex))
+     end
+
+      #println(idx_list)
+    
+      #for i in 1:length($var.axes)
+      #    push!(ex.args, $var.axes[i])
+      #end
+      #idx_list = collect(eval(ex))
+
 
       for idx in idx_list
         F_name = string($F_base_name, "[", join(idx,","), "]")
 
         var_idx = $var[idx...]
+
         F_idx = $F[idx...]
+
+
+      
 
         add_complementarity($m, var_idx, F_idx, F_name)
       end
