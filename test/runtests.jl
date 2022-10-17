@@ -1,7 +1,6 @@
 using Test
 using Complementarity
 
-
 @testset "Complementarity Tests" begin
 
     include("../examples/mcp/transmcp.jl")
@@ -28,4 +27,6 @@ using Complementarity
     include("runtests_mpec.jl")
 
     include("test_bounds.jl")
+
+    include("fixed_variables.jl")
 end
