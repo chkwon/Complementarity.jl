@@ -68,6 +68,8 @@ using Test
     
     JuMP.fix(x[:b], 2., force=true)   
 
+    println("he")
+
     status = solveMCP(m)
 
     @test all(result_value.(x) .≈ [-4,2,-10,-2])

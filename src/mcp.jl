@@ -143,7 +143,10 @@ function _solve_path!(m::JuMP.Model; kwargs...)
         # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
         
-        nc = length(d.constraints)           # number of constraints
+        #nc = length(d.constraints)           # number of constraints
+        
+        nc = length(J)
+        
         Jac = sparse(I, J, jac_val, nc, nc)  # SparseMatrixCSC
         return Jac
     end
@@ -462,7 +465,7 @@ macro complementarity(m, F, var)
             fixed = false
 
         else
-            F_idx = JuMP.add_NL_expression($m,0)
+            F_idx = JuMP.add_nonlinear_expression($m,0)
             F_name = string(F_idx)
             fixed = true
         end
