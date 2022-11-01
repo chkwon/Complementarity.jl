@@ -12,6 +12,7 @@ function esc_variable(ex::Symbol, parameters=Symbol[])
     end
 end
 function esc_variable(ex::Expr, parameters=Symbol[])
+
     ex2 = copy(ex)
     if ex2.head == :call
         for i in 2:length(ex2.args)

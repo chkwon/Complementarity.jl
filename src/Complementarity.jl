@@ -15,7 +15,7 @@ module Complementarity
 using Base.Meta
 using LinearAlgebra, SparseArrays
 
-import PATHSolver, NLsolve, MathOptInterface
+import PATHSolver, NLsolve, MathOptInterface#, OrderedCollections
 const MOI = MathOptInterface
 
 using JuMP
