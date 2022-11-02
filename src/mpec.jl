@@ -261,6 +261,7 @@ macro complements(args...)
 
     # Bound constraints are NOT added in :smooth method.
     if method == :simple || method == :smooth
+
         if Fhaslb
             push!(code.args, quote
                 @NLconstraint( $(m), $(esc_variable(func)) >= $(lb_F) )
@@ -282,6 +283,7 @@ macro complements(args...)
             end )
         end
     end
+
 
     # # There must be a better way of writing the codes below...
     if Fhaslb && Fhasub
@@ -351,6 +353,8 @@ macro complements(args...)
     else
         complements_error(args, "NO VALID CASE")
     end
+
+
 
     return code
 end
