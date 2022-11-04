@@ -24,7 +24,7 @@ using Complementarity
 
     include("runtests_mcp_nlsolve.jl")
 
-    #include("runtests_mpec.jl")
+    include("runtests_mpec.jl")
 
     include("test_bounds.jl")
 
