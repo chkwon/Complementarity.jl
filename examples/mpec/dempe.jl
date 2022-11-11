@@ -50,7 +50,7 @@ using Test
 
     @NLconstraint(dempe, z - 3 + 2*z*w == 0)
 
-    @complements(dempe, 0 >= z^2 - x,  w >= 0, simple)
+    @complements(dempe, 0 >= z^2 - x,  w >= 0, :simple)
 
     # Initial solutions to help reaching the optimality
     set_start_value(x, 0)

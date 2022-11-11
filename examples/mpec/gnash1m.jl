@@ -99,8 +99,13 @@ using Test
     @NLconstraint(gnash1m, cnstr[i=1:4], 0 == ( c[i+1] + K[i+1]^(-1/b[i+1])*y[i] ) - ( gg*Q^(-1/g) )
                                       - y[i]*( -1/g*gg*Q^(-1-1/g) ) - l[i] )
 
+
+    @macroexpand @complements(gnash1m, l[1], 0<=y[1]<=L,:smooth)
+    
+    
+    
     for i in 1:4
-        @complements(gnash1m, l[i], 0 <= y[i] <= L, smooth)
+        @complements(gnash1m, l[i], 0 <= y[i] <= L, :smooth)
     end
 
     # Initial solutions to help reaching the optimality

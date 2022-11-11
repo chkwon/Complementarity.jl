@@ -28,7 +28,7 @@ export  MCPModel, MCPData, ComplementarityType,
         complements, solveMCP, solveLCP,
         result_value, set_start_value,
         @complementarity, @complements, @mapping, @variable,
-        @NLexpression, @expression,
+        @NLexpression, @expression
         PATHSolver
 
 mpec_tol = 1e-8

@@ -3,7 +3,10 @@
 # y[i] ==> esc(:y)[esc(:i)]
 # In generator like below, i is placed in parameters and i is not escaped.
 # sum(z[i] for i in 1:10) ==> sum(esc(:z)[i] for i in 1:10)
+
+
 esc_variable(ex, parameters=Symbol[]) = ex
+
 function esc_variable(ex::Symbol, parameters=Symbol[])
     if ex in parameters
         return ex
@@ -11,6 +14,7 @@ function esc_variable(ex::Symbol, parameters=Symbol[])
         return esc(ex)
     end
 end
+
 function esc_variable(ex::Expr, parameters=Symbol[])
 
     ex2 = copy(ex)
@@ -58,6 +62,8 @@ function smooth(c1, c2)
 end
 
 function get_complementarity(c1, c2, method)
+    c1 = esc_variable(c1)
+    c2 = esc_variable(c2)
     if method == :smooth
         expr = smooth(c1, c2)
     elseif method == :simple
@@ -69,8 +75,6 @@ function get_complementarity(c1, c2, method)
 
     return expr
 end
-
-
 
 
 macro complements(args...)
@@ -264,26 +268,34 @@ macro complements(args...)
 
         if Fhaslb
             push!(code.args, quote
-                @NLconstraint( $(m), $(esc_variable(func)) >= $(lb_F) )
+                $add_nonlinear_constraint($m, :($$(esc_variable(func)) >= $$(lb_F)))
+                #@NLconstraint( $(m), $(esc_variable(func)) >= $(lb_F) )
             end )
         end
         if Fhasub
             push!(code.args, quote
-                @NLconstraint( $(m), $(esc_variable(func)) <= $(ub_F) )
+                $add_nonlinear_constraint($m, :($$(esc_variable(func)) <= $$(ub_F)))
+                #@NLconstraint( $(m), $(esc_variable(func)) <= $(ub_F) )
             end )
         end
         if xhaslb
             push!(code.args, quote
-                @NLconstraint( $(m), $(esc_variable(var)) >= $(lb_x) )
+                $add_nonlinear_constraint($m, :($$(esc_variable(var)) >= $$(lb_x)))
+                #@NLconstraint( $(m), $(esc_variable(var)) >= $(lb_x) )
             end )
         end
         if xhasub
             push!(code.args, quote
-                @NLconstraint( $(m), $(esc_variable(var)) <= $(ub_x) )
+                $add_nonlinear_constraint($m, :($$(esc_variable(var)) >= $$(ub_x)))
+                #@NLconstraint( $(m), $(esc_variable(var)) <= $(ub_x) )
             end )
         end
     end
 
+
+
+    var = esc_variable(var)
+    func = esc_variable(func)
 
     # # There must be a better way of writing the codes below...
     if Fhaslb && Fhasub
@@ -302,52 +314,53 @@ macro complements(args...)
 
         # v - w = func
         push!(code.args, quote
-            @NLconstraint( $(m), $(esc(:v))-$(esc(:w)) == $(esc_variable(func)) )
+            $add_nonlinear_constraint($m, :( $$(esc(:v)) - $$(esc(:w)) ==  $$(esc_variable(func))))
+            #@NLconstraint( $(m), $(esc(:v))-$(esc(:w)) == $(esc_variable(func)) )
         end )
 
         # v * (x - lb) = 0
         c1 = Expr(:call, :(-), var, lb_x)
-        expr = esc_variable(get_complementarity(c1, :v, method))
+        expr = :($get_complementarity($c1, $(esc(:v)), $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
 
         # w * (ub - x) = 0
         c1 = Expr(:call, :(-), ub_x, var)
-        expr = esc_variable(get_complementarity(c1, :w, method))
+        expr = :($get_complementarity($c1, $(esc(:w)), $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
 
     elseif Fhaslb && xhaslb
         c1 = Expr(:call, :(-), var, lb_x)
         c2 = Expr(:call, :(-), func, lb_F)
-        expr = esc_variable(get_complementarity(c1, c2, method))
+        expr = :($get_complementarity($c1,$c2, $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
 
     elseif Fhaslb && xhasub
         c1 = Expr(:call, :(-), ub_x, var)
         c2 = Expr(:call, :(-), func, lb_F)
-        expr = esc_variable(get_complementarity(c1, c2, method))
+        expr = :($get_complementarity($c1, $c2, $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
 
     elseif Fhasub && xhaslb
         c1 = Expr(:call, :(-), var, lb_x)
         c2 = Expr(:call, :(-), ub_F, func)
-        expr = esc_variable(get_complementarity(c1, c2, method))
+        expr = :($get_complementarity($c1, $c2, $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
     elseif Fhasub && xhasub
         c1 = Expr(:call, :(-), ub_x, var)
         c2 = Expr(:call, :(-), ub_F, func)
-        expr = esc_variable(get_complementarity(c1, c2, method))
+        expr = :($get_complementarity($c1, $c2, $method))
         push!(code.args, quote
-            @NLconstraint( $(m), $(expr) )
+            $add_nonlinear_constraint($m, $expr)
         end )
 
     else
