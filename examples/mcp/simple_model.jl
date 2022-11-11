@@ -1,8 +1,3 @@
-#using Pkg
-#Pkg.activate("MPSGE")
-
-#Pkg.add("Complementarity")
-
 using Complementarity
 
 plants = ["seattle", "san-diego"]
@@ -57,4 +52,4 @@ p = Complementarity.sortperm_MCP_data(mcp_data)
 n = length(mcp_data)
 
 
-JuMP.@NLconstraint(m,[i=1:n],mcp_data[p[i]].F == 0)
+#JuMP.@NLconstraint(m,[i=1:n],mcp_data[p[i]].F == 0)

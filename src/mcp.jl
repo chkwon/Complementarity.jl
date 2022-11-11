@@ -118,6 +118,12 @@ function sortperm_MCP_data(obj::Array{ComplementarityType,1})
     return sortperm(ref)
 end
 
+
+function reset_nonlinear_constraints!(m)
+    m.nlp_model.constraints = JuMP.OrderedCollections.OrderedDict{MOI.Nonlinear.ConstraintIndex,MOI.Nonlinear.Constraint}()
+end
+
+
 # Using PATHSolver
 function _solve_path!(m::JuMP.Model; kwargs...)
     d = JuMP.NLPEvaluator(m)
@@ -243,7 +249,9 @@ function _solve_path!(m::JuMP.Model; kwargs...)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr = []
+    #m.nlp_data.nlconstr = []
+    reset_nonlinear_constraints!(m)
+
 
     # This function has changed the content of m already.
     return return_type[Int(status)]
@@ -349,7 +357,8 @@ function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr =  []
+    #m.nlp_data.nlconstr =  []
+    reset_nonlinear_constraints!(m)
 
     # This function has changed the content of m already.
     return r

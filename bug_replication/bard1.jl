@@ -33,13 +33,11 @@ using Test
     bard1 = Model(Ipopt.Optimizer)
 
     @variable(bard1, x>=0)
+    
     @variable(bard1, y>=0)
     @variable(bard1, l[1:3])
 
-    @NLobjective(bard1, Min, (x - 5)^2 + (2*y + 1)^2)
-
-    @NLconstraint(bard1, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
-
+    
     @complements(bard1, 0 <= 3*x - y - 3,        l[1] >= 0, :smooth)
     @complements(bard1, 0 <= - x + 0.5*y + 4,    l[2] >= 0, :smooth)
     @complements(bard1, 0 <= - x - y + 7,        l[3] >= 0, :simple)
