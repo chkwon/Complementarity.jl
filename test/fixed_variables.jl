@@ -17,7 +17,7 @@ using Test
     @mapping(m, G[a = A], x[a]*y[a]+V[a])
 
 
-    JuMP.fix(x[:b],2,force=true)
+    JuMP.fix(x[:b],2)
 
     @complementarity(m, F, x)
     @complementarity(m, G, y)
@@ -28,7 +28,11 @@ using Test
     @test all(result_value.(x) .≈ [-4,2,-10,-2])
     @test all(result_value.(y) .≈ [1,-1.5,1,1])
 
+    @show result_value.(x)
 
+end
+
+    #=
     
     #Step 2: Reconstruct the model, but restrict the domain of the equation with a fixed variable
     #A = (:a,:b,:c,:d)
@@ -87,15 +91,9 @@ using Test
     @complementarity(m, F, x)
     @complementarity(m, G, y)
 
-    let err = nothing
-        try
-            status = solveMCP(m)
-        catch err
-        end
 
-        @test err isa Exception
-        @test sprint(showerror,err) == "AssertionError: Unmatched variables VariableRef[x[b]]"
-    end
+    @test_throws AssertionError status = solveMCP(m)
+
 
     #Step 5: Test that the error is raised with NLsolve
     m = MCPModel()
@@ -109,14 +107,9 @@ using Test
     @complementarity(m, F, x)
     @complementarity(m, G, y)
 
-    let err = nothing
-        try
-            status = solveMCP(m,solver = :NLsolve)
-        catch err
-        end
+    @test_throws AssertionError status = solveMCP(m)
 
-        @test err isa Exception
-        @test sprint(showerror,err) == "AssertionError: Unmatched variables VariableRef[x[b]]"
-    end
 
 end
+
+=#
