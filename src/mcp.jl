@@ -22,6 +22,7 @@ mutable struct ComplementarityType
     var_name::String
     F_name::String
     result_value::AbstractFloat
+    fixed_variable::Bool
 end
 
 function MCPModel()
@@ -117,6 +118,12 @@ function sortperm_MCP_data(obj::Array{ComplementarityType,1})
     return sortperm(ref)
 end
 
+
+function reset_nonlinear_constraints!(m)
+    m.nlp_model.constraints = JuMP.OrderedCollections.OrderedDict{MOI.Nonlinear.ConstraintIndex,MOI.Nonlinear.Constraint}()
+end
+
+
 # Using PATHSolver
 function _solve_path!(m::JuMP.Model; kwargs...)
     d = JuMP.NLPEvaluator(m)
@@ -142,7 +149,10 @@ function _solve_path!(m::JuMP.Model; kwargs...)
         # return matrix also should be in RawIndex
         # since it is the order in which constraints are added
         
-        nc = length(d.constraints)           # number of constraints
+        #nc = length(d.constraints)           # number of constraints
+        
+        nc = length(J)
+        
         Jac = sparse(I, J, jac_val, nc, nc)  # SparseMatrixCSC
         return Jac
     end
@@ -180,6 +190,11 @@ function _solve_path!(m::JuMP.Model; kwargs...)
     end
 
     mcp_data = get_MCP_data(m)
+
+    matched_fix = [elm.var for elm in mcp_data if (is_fixed(elm.var) ≠ elm.fixed_variable)&&(elm.fixed_variable)]
+    @assert matched_fix==[] "Unmatched variables $matched_fix"
+
+
     n = length(mcp_data)
 
     # Two Indices
@@ -234,7 +249,9 @@ function _solve_path!(m::JuMP.Model; kwargs...)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr = []
+    #m.nlp_data.nlconstr = []
+    reset_nonlinear_constraints!(m)
+
 
     # This function has changed the content of m already.
     return return_type[Int(status)]
@@ -269,6 +286,11 @@ function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
     end
 
     mcp_data = get_MCP_data(m)
+
+    matched_fix = [elm.var for elm in mcp_data if (is_fixed(elm.var) ≠ elm.fixed_variable)&&(elm.fixed_variable)]
+    @assert matched_fix==[] "Unmatched variables $matched_fix"
+
+
     n = length(mcp_data)
 
     # Two Indices
@@ -335,7 +357,8 @@ function _solve_nlsolve!(m::JuMP.Model; method=:trust_region)
 
     # Cleanup. Remove all dummy @NLconstraints added,
     # so that the model can be re-used for multiple runs
-    m.nlp_data.nlconstr =  []
+    #m.nlp_data.nlconstr =  []
+    reset_nonlinear_constraints!(m)
 
     # This function has changed the content of m already.
     return r
@@ -364,15 +387,16 @@ end
 @eval const $(Symbol("@mapping")) = $(Symbol("@NLexpression"))
 
 
-function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.NonlinearExpression, F_name::String)
+function add_complementarity(m::JuMP.Model, var::JuMP.VariableRef, F::JuMP.NonlinearExpression, F_name::String; fixed_variable::Bool = false)
 
   lb = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_lower_bound(var) ? JuMP.lower_bound(var) : -Inf
   ub = JuMP.is_fixed(var) ? JuMP.fix_value(var) : JuMP.has_upper_bound(var) ? JuMP.upper_bound(var) : Inf
   var_name = JuMP.name(var)
-  new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN)
+  new_dimension = ComplementarityType(lb, var, ub, F, raw_index(var), var_name, F_name, NaN, fixed_variable)
   mcp_data = get_MCP_data(m)
   push!(mcp_data, new_dimension)
 end
+
 
 macro complementarity(m, F, var)
   F_base_name = string(F)
@@ -422,19 +446,43 @@ macro complementarity(m, F, var)
 
     else # isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1 or > 1
       # when var is a multi-dimensional JuMP variable array
+      
       ex = :(Base.product())
       for i in 1:length($var.axes)
         push!(ex.args, $var.axes[i])
       end
-      idx_list = collect(eval(ex))
+      var_idx_list = collect(eval(ex))
 
-      for idx in idx_list
-        F_name = string($F_base_name, "[", join(idx,","), "]")
 
+      if isa($F,JuMP.Containers.SparseAxisArray)
+        F_idx_list = collect(keys($F.data))
+      else
+        F_ex = :(Base.product())
+        for i in 1:length($F.axes)            
+            push!(F_ex.args, $F.axes[i])
+        end
+        F_idx_list = collect(eval(F_ex))
+      end
+
+
+      for idx in var_idx_list
         var_idx = $var[idx...]
-        F_idx = $F[idx...]
 
-        add_complementarity($m, var_idx, F_idx, F_name)
+        if idx in F_idx_list
+            F_name = string($F_base_name, "[", join(idx,","), "]")
+            F_idx = $F[idx...]
+            fixed = false
+
+        else
+            F_idx = JuMP.add_nonlinear_expression($m,0)
+            F_name = string(F_idx)
+            fixed = true
+        end
+
+
+
+
+        add_complementarity($m, var_idx, F_idx, F_name, fixed_variable = fixed)
       end
 
     end # end of if

@@ -40,9 +40,9 @@ using Test
 
     @NLconstraint(bard1, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
 
-    @complements(bard1, 0 <= 3*x - y - 3,        l[1] >= 0, smooth)
-    @complements(bard1, 0 <= - x + 0.5*y + 4,    l[2] >= 0, smooth)
-    @complements(bard1, 0 <= - x - y + 7,        l[3] >= 0, simple)
+    @complements(bard1, 0 <= 3*x - y - 3,        l[1] >= 0, :smooth)
+    @complements(bard1, 0 <= - x + 0.5*y + 4,    l[2] >= 0, :smooth)
+    @complements(bard1, 0 <= - x - y + 7,        l[3] >= 0, :simple)
 
     JuMP.optimize!(bard1)
 

@@ -1,4 +1,8 @@
 
+# Branch Information
+
+This is a branch of Complementarity. The goal of this branch is to update Complementarity to work with the newest version of JuMP. Currently the only broken test is MCEP.  
+
 
 # Complementarity.jl
 

@@ -27,4 +27,6 @@ using Complementarity
     include("runtests_mpec.jl")
 
     include("test_bounds.jl")
+
+    include("fixed_variables.jl")
 end

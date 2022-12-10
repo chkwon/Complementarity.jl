@@ -40,15 +40,15 @@ using Test
     @NLobjective(m, Min, (x - 5)^2 + (2*y + 1)^2)
 
     # @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
-    @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] + l[2]*0.5 - l[3] == 0)
+    @NLconstraint(m, 2*(y-1) - 1.5*x + l[1] - l[2]*0.5 + l[3] == 0)
 
     # Original Form
     # @complements(m, 0 <= 3*x - y - 3,        l[1] >= 0)
     # @complements(m, 0 <= - x + 0.5*y + 4,    l[2] >= 0)
     # @complements(m, 0 <= - x - y + 7,        l[3] >= 0)
-    @complements(m, 0 >= - 3*x + y + 3,        l[1] >= 0, smooth)
-    @complements(m, 0 <= - x + 0.5*y + 4,      l[2] <= 0, simple)
-    @complements(m, 0 >= + x + y - 7,          l[3] <= 0, smooth)
+    @complements(m, 0 >= - 3*x + y + 3,        l[1] >= 0, :smooth)
+    @complements(m, 0 <= - x + 0.5*y + 4,      l[2] <= 0, :simple)
+    @complements(m, 0 >= + x + y - 7,          l[3] <= 0, :smooth)
 
     # just testing
     @macroexpand(@complements(m, 3*x - y - 3,    0 <=  l[1] <= 5))
