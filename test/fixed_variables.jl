@@ -30,6 +30,12 @@ using Test
 
     @show result_value.(x)
 
+
+    JuMP.fix(x[:b], 3)
+    status = solveMCP(m)
+    @test result_value.(x[:b]) ≈ 3
+
+
 end
 
     #=
