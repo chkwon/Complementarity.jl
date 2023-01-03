@@ -1,11 +1,4 @@
-
-# Branch Information
-
-This is a branch of Complementarity. The goal of this branch is to update Complementarity to work with the newest version of JuMP. Currently the only broken test is MCEP.  
-
-
 # Complementarity.jl
-
 
 [![Build Status](https://github.com/chkwon/Complementarity.jl/workflows/CI/badge.svg?branch=master)](https://github.com/chkwon/Complementarity.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/chkwon/Complementarity.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/chkwon/Complementarity.jl)
@@ -17,7 +10,12 @@ This package provides modeling language for (1) mixed complementarity problems (
 
 ## Mixed Complementarity Problems (MCP)
 
-**NOTE:** The [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) has been completely rewritten between `v0.6.2` and `v1.1.0`. Now PATHSolver.jl provides both an interface to the [PATH](http://pages.cs.wisc.edu/~ferris/path.html) solver and an integration to JuMP, but only limited to *linear* problems at this moment. For *nonlinear* problems, you still need to use [Complementarity.jl](https://github.com/chkwon/Complementarity.jl), which now also uses the new PATHSolver.jl as its solver. Most parts of Complementarity.jl remain the same, except how the solver options are passed. 
+**NOTE:** Differences between PATHSolver.jl and Complementarity.jl:
+- [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) provides a wrapper for the C API of the [PATH](http://pages.cs.wisc.edu/~ferris/path.html) solver. 
+- [PATHSolver.jl](https://github.com/chkwon/PATHSolver.jl) also enables JuMP for solving MCP, but limited to linear problems.
+- Complementarity.jl provides a JuMP extension for solving MCP, both linear and nonlinear, using the C API wrapper in PATHSolver.jl.
+
+
 
 
 ***[MCP Documentation](MCP.md)***
