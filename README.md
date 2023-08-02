@@ -73,7 +73,7 @@ m = Model(Ipopt.Optimizer)
 @variable(m, x>=0)
 @NLobjective(m, Min, x^3)
 @complements(m, 0 <= x+2,   x >= 0)
-solve(m)
+optimize!(m)
 @show getvalue(x)
 ```
 
