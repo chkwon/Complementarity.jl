@@ -447,11 +447,15 @@ macro complementarity(m, F, var)
     else # isa($var, JuMP.JuMPArray) && length(($var).indexsets) == 1 or > 1
       # when var is a multi-dimensional JuMP variable array
       
-      ex = :(Base.product())
-      for i in 1:length($var.axes)
-        push!(ex.args, $var.axes[i])
-      end
-      var_idx_list = collect(eval(ex))
+        if isa($var,JuMP.Containers.SparseAxisArray)
+            var_idx_list = collect(keys($var.data))
+        else
+            ex = :(Base.product())
+            for i in 1:length($var.axes)
+                push!(ex.args, $var.axes[i])
+            end
+            var_idx_list = collect(eval(ex))
+        end
 
 
       if isa($F,JuMP.Containers.SparseAxisArray)
